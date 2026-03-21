@@ -8,10 +8,21 @@ const SoundManager = {
 
   // Must be called from a user gesture (tap) to unlock audio on iOS
   init() {
-    if (this.ctx) return;
-    this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+    if (!this.ctx) {
+      this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    // Always try to resume — iOS can suspend even after creation
     if (this.ctx.state === 'suspended') {
       this.ctx.resume();
+    }
+    // iOS Safari workaround: play a silent buffer to fully unlock audio
+    if (!this._unlocked) {
+      const buffer = this.ctx.createBuffer(1, 1, 22050);
+      const source = this.ctx.createBufferSource();
+      source.buffer = buffer;
+      source.connect(this.ctx.destination);
+      source.start(0);
+      this._unlocked = true;
     }
   },
 

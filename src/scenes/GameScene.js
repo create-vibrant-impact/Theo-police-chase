@@ -34,6 +34,7 @@ class GameScene extends Phaser.Scene {
 
     // --- TOUCH INPUT ---
     this.input.on('pointerdown', (pointer) => {
+      SoundManager.init(); // Ensure audio is unlocked on first touch
       this.targetPos = { x: pointer.x, y: pointer.y };
       SoundManager.startSiren();
     });
