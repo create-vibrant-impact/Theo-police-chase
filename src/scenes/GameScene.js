@@ -61,6 +61,24 @@ class GameScene extends Phaser.Scene {
     this.physics.add.overlap(this.car, this.badGuys, this.catchBadGuy, null, this);
     this.physics.add.overlap(this.car, this.jail, this.deliverToJail, null, this);
 
+    // --- POWER-UPS ---
+    this.powerUps = this.physics.add.group();
+    this.isBoosted = false;
+    if (this.roundConfig.powerUps) {
+      this.spawnPowerUp();
+      this.time.delayedCall(4000, () => this.spawnPowerUp());
+    }
+    this.physics.add.overlap(this.car, this.powerUps, this.collectPowerUp, null, this);
+
+    // --- OBSTACLES ---
+    this.obstacles = this.physics.add.group();
+    this.isSpinning = false;
+    this.isSlowed = false;
+    if (this.roundConfig.obstacles.length > 0) {
+      this.spawnObstacles();
+    }
+    this.physics.add.overlap(this.car, this.obstacles, this.hitObstacle, null, this);
+
     // --- SIREN ANIMATION ---
     this.sirenTimer = this.time.addEvent({
       delay: 300,
@@ -72,6 +90,20 @@ class GameScene extends Phaser.Scene {
   }
 
   update() {
+    if (this.roundComplete) return;
+
+    // Spinning state — coast on captured velocity
+    if (this.isSpinning) {
+      this.car.body.setVelocity(this.spinVx, this.spinVy);
+      if (this.carrying) {
+        this.carrying.x = this.car.x - Math.cos(this.car.rotation) * 35;
+        this.carrying.y = this.car.y - Math.sin(this.car.rotation) * 35;
+        this.carrying.setRotation(this.car.rotation);
+      }
+      this._updateBadGuyBounds();
+      return;
+    }
+
     if (this.targetPos) {
       const dist = Phaser.Math.Distance.Between(
         this.car.x, this.car.y,
@@ -79,7 +111,10 @@ class GameScene extends Phaser.Scene {
       );
 
       if (dist > CONFIG.CAR_STOP_DISTANCE) {
-        this.physics.moveToObject(this.car, this.targetPos, this.roundConfig.speed);
+        let speed = this.roundConfig.speed;
+        if (this.isBoosted) speed *= CONFIG.POWERUP_BOOST_MULTIPLIER;
+        if (this.isSlowed) speed *= CONFIG.POTHOLE_SLOW_MULTIPLIER;
+        this.physics.moveToObject(this.car, this.targetPos, speed);
 
         // Rotate car to face movement direction
         const angle = Phaser.Math.Angle.Between(
@@ -100,10 +135,12 @@ class GameScene extends Phaser.Scene {
       this.carrying.setRotation(this.car.rotation);
     }
 
-    // Update bad guy wandering
+    this._updateBadGuyBounds();
+  }
+
+  _updateBadGuyBounds() {
     this.badGuys.children.iterate((badGuy) => {
       if (!badGuy || !badGuy.active || badGuy === this.carrying) return;
-      // Keep in bounds
       if (badGuy.x < 30) badGuy.body.setVelocityX(this.roundConfig.badGuySpeed);
       if (badGuy.x > CONFIG.WIDTH - 30) badGuy.body.setVelocityX(-this.roundConfig.badGuySpeed);
       if (badGuy.y < 30) badGuy.body.setVelocityY(this.roundConfig.badGuySpeed);
@@ -814,6 +851,204 @@ class GameScene extends Phaser.Scene {
       SoundManager.stopSiren();
       this.time.delayedCall(600, () => {
         this.scene.start('CelebrationScene');
+      });
+    }
+  }
+
+  // --- POWER-UPS ---
+
+  spawnPowerUp() {
+    if (this.roundComplete) return;
+    if (!this.textures.exists('powerup')) {
+      const g = this.add.graphics();
+      // Fuel can body — orange circle
+      g.fillStyle(0xFF6D00);
+      g.fillCircle(14, 14, 12);
+      // Inner glow
+      g.fillStyle(0xFFAB00, 0.6);
+      g.fillCircle(14, 14, 8);
+      // Flame icon on top — small red triangle
+      g.fillStyle(0xF44336);
+      g.fillTriangle(14, 2, 8, 12, 20, 12);
+      // Highlight
+      g.fillStyle(0xFFFFFF, 0.4);
+      g.fillCircle(11, 11, 4);
+      g.generateTexture('powerup', 28, 28);
+      g.destroy();
+    }
+    // Spawn position: grass for rounds 2-3, allow roads for 4+
+    let px, py;
+    if (this.currentRound >= CONFIG.POWERUP_ON_ROADS_FROM_ROUND) {
+      px = Phaser.Math.Between(60, CONFIG.WIDTH - 60);
+      py = Phaser.Math.Between(80, CONFIG.HEIGHT - 80);
+    } else {
+      // Stay on grass (avoid roads and jail)
+      do {
+        px = Phaser.Math.Between(60, CONFIG.WIDTH - 60);
+        py = Phaser.Math.Between(80, CONFIG.HEIGHT - 80);
+      } while (
+        Math.abs(py - CONFIG.HEIGHT / 2) < 40 ||
+        Math.abs(px - CONFIG.WIDTH / 2) < 40 ||
+        Phaser.Math.Distance.Between(px, py, CONFIG.JAIL_X, CONFIG.JAIL_Y) < 100
+      );
+    }
+    const pu = this.physics.add.sprite(px, py, 'powerup');
+    pu.body.setSize(28, 28);
+    this.powerUps.add(pu);
+    // Pulsing glow
+    this.tweens.add({
+      targets: pu,
+      scale: 1.15,
+      duration: 500,
+      yoyo: true,
+      repeat: -1,
+      ease: 'Sine.easeInOut',
+    });
+  }
+
+  collectPowerUp(car, powerUp) {
+    powerUp.destroy();
+    this.isBoosted = true;
+    SoundManager.playWhoosh();
+    // Boost HUD indicator
+    this.boostIndicator = this.add.text(CONFIG.WIDTH - 110, 70, 'BOOST!', {
+      fontFamily: 'Arial Black, Arial, sans-serif',
+      fontSize: '18px', fontStyle: 'bold',
+      color: '#FF6D00', stroke: '#000000', strokeThickness: 3,
+    }).setDepth(102);
+    this.tweens.add({
+      targets: this.boostIndicator,
+      alpha: 0.4,
+      duration: 300,
+      yoyo: true,
+      repeat: -1,
+    });
+    // End boost after duration
+    this.time.delayedCall(CONFIG.POWERUP_BOOST_DURATION, () => {
+      this.isBoosted = false;
+      if (this.boostIndicator) { this.boostIndicator.destroy(); this.boostIndicator = null; }
+    });
+    // Respawn after delay
+    this.time.delayedCall(CONFIG.POWERUP_RESPAWN_DELAY, () => this.spawnPowerUp());
+  }
+
+  // --- OBSTACLES ---
+
+  spawnObstacles() {
+    const types = this.roundConfig.obstacles;
+    const roadCenterX = CONFIG.WIDTH / 2;
+    const roadCenterY = CONFIG.HEIGHT / 2;
+
+    types.forEach(type => {
+      const count = Phaser.Math.Between(2, 3);
+      for (let i = 0; i < count; i++) {
+        let ox, oy, attempts = 0;
+        do {
+          // Place on roads
+          if (Math.random() > 0.5) {
+            // Horizontal road
+            ox = Phaser.Math.Between(80, CONFIG.WIDTH - 80);
+            oy = roadCenterY + Phaser.Math.Between(-25, 25);
+          } else {
+            // Vertical road
+            ox = roadCenterX + Phaser.Math.Between(-25, 25);
+            oy = Phaser.Math.Between(80, CONFIG.HEIGHT - 80);
+          }
+          attempts++;
+        } while (
+          attempts < 20 && (
+            (Math.abs(ox - roadCenterX) < 50 && Math.abs(oy - roadCenterY) < 50) ||
+            Phaser.Math.Distance.Between(ox, oy, CONFIG.JAIL_X, CONFIG.JAIL_Y) < 80
+          )
+        );
+
+        this._createObstacle(type, ox, oy);
+      }
+    });
+  }
+
+  _createObstacle(type, x, y) {
+    if (type === 'oilslick' && !this.textures.exists('oilslick')) {
+      const g = this.add.graphics();
+      g.fillStyle(0x1A1A1A, 0.7);
+      g.fillCircle(20, 20, 18);
+      g.fillCircle(16, 22, 14);
+      g.fillCircle(24, 18, 12);
+      g.fillCircle(20, 16, 10);
+      // Sheen
+      g.fillStyle(0x444444, 0.3);
+      g.fillCircle(16, 16, 6);
+      g.generateTexture('oilslick', 40, 40);
+      g.destroy();
+    }
+    if (type === 'pothole' && !this.textures.exists('pothole')) {
+      const g = this.add.graphics();
+      // Brown cracked circle
+      g.fillStyle(0x4E342E);
+      g.fillCircle(16, 16, 15);
+      // Lighter crack lines
+      g.lineStyle(2, 0x795548);
+      g.lineBetween(8, 12, 24, 20);
+      g.lineBetween(12, 8, 20, 24);
+      // Debris
+      g.fillStyle(0x6D4C41);
+      g.fillRect(4, 10, 4, 3);
+      g.fillRect(26, 18, 3, 4);
+      g.fillRect(10, 26, 4, 3);
+      g.generateTexture('pothole', 32, 32);
+      g.destroy();
+    }
+
+    const obs = this.physics.add.sprite(x, y, type);
+    obs.obstacleType = type;
+    obs.body.setImmovable(true);
+    this.obstacles.add(obs);
+  }
+
+  hitObstacle(car, obstacle) {
+    const type = obstacle.obstacleType;
+
+    // Monster Jam crushes obstacles
+    if (this.vehicleType === 'monstertruck') {
+      obstacle.destroy();
+      SoundManager.playCrunch();
+      this.cameras.main.shake(100, 0.005);
+      return;
+    }
+
+    if (this.isSpinning || this.isSlowed) return;
+
+    if (type === 'oilslick') {
+      this.isSpinning = true;
+      this.spinVx = this.car.body.velocity.x;
+      this.spinVy = this.car.body.velocity.y;
+      this.tweens.add({
+        targets: this.car,
+        angle: '+=720',
+        duration: CONFIG.OIL_SLICK_SPIN_DURATION,
+      });
+      this.time.delayedCall(CONFIG.OIL_SLICK_COAST_DURATION, () => {
+        this.isSpinning = false;
+      });
+    } else if (type === 'pothole') {
+      this.isSlowed = true;
+      SoundManager.playDeflate();
+      this.tweens.add({
+        targets: this.car,
+        angle: { from: -3, to: 3 },
+        duration: 200,
+        yoyo: true,
+        repeat: 9,
+      });
+      // Flat tire indicator
+      this.flatIndicator = this.add.text(CONFIG.WIDTH - 110, 70, 'FLAT!', {
+        fontFamily: 'Arial Black, Arial, sans-serif',
+        fontSize: '18px', fontStyle: 'bold',
+        color: '#F44336', stroke: '#000000', strokeThickness: 3,
+      }).setDepth(102);
+      this.time.delayedCall(CONFIG.POTHOLE_SLOW_DURATION, () => {
+        this.isSlowed = false;
+        if (this.flatIndicator) { this.flatIndicator.destroy(); this.flatIndicator = null; }
       });
     }
   }
