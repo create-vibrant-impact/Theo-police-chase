@@ -58,7 +58,7 @@ const CONFIG = {
     { round: 2, vehicle: 'suv',         vehicleName: 'POLICE SUV',   vehicleW: 70, vehicleH: 46, speed: 190, badGuyCount: 4, badGuySpeed: 50, powerUps: true,  obstacles: [] },
     { round: 3, vehicle: 'jeep',        vehicleName: 'POLICE JEEP',  vehicleW: 64, vehicleH: 42, speed: 200, badGuyCount: 4, badGuySpeed: 55, powerUps: true,  obstacles: ['oilslick'] },
     { round: 4, vehicle: 'motorcycle',  vehicleName: 'MOTORCYCLE',   vehicleW: 55, vehicleH: 32, speed: 240, badGuyCount: 5, badGuySpeed: 60, powerUps: true,  obstacles: ['oilslick', 'pothole'] },
-    { round: 5, vehicle: 'monstertruck', vehicleName: 'MONSTER JAM', vehicleW: 80, vehicleH: 50, speed: 180, badGuyCount: 5, badGuySpeed: 65, powerUps: true,  obstacles: ['oilslick', 'pothole'] },
+    { round: 5, vehicle: 'monstertruck', vehicleName: 'MONSTER JAM', vehicleW: 96, vehicleH: 64, speed: 180, badGuyCount: 5, badGuySpeed: 65, powerUps: true,  obstacles: ['oilslick', 'pothole'] },
   ],
 
   // Power-up constants

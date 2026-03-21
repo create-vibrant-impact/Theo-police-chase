@@ -425,280 +425,311 @@ class GameScene extends Phaser.Scene {
   }
 
   _drawSuvTexture(g, W, H) {
-    const bodyColor = 0x0D47A1;
+    // WHITE body with blue stripe — classic NYPD look
     // Shadow
-    g.fillStyle(0x000000, 0.15);
-    g.fillRect(4, 10, W - 4, H - 10);
-    // Body — taller than car
-    g.fillStyle(bodyColor);
-    g.fillRect(2, 8, W - 4, H - 16);
-    // 3D edges
     g.fillStyle(0x000000, 0.2);
-    g.fillRect(2, H - 10, W - 4, 2);
-    g.fillRect(W - 4, 8, 2, H - 16);
-    g.fillStyle(0xFFFFFF, 0.15);
-    g.fillRect(2, 8, W - 4, 2);
-    g.fillRect(2, 8, 2, H - 16);
-    // Roof rack — gray bar on top with studs
-    g.fillStyle(0x888888);
-    g.fillRect(14, 4, 42, 5);
-    g.fillStyle(0xAAAAAA);
-    g.fillCircle(22, 3, 3);
-    g.fillCircle(35, 3, 3);
-    g.fillCircle(48, 3, 3);
-    g.fillStyle(0xFFFFFF, 0.3);
-    g.fillCircle(21, 2, 1.5);
-    g.fillCircle(34, 2, 1.5);
-    g.fillCircle(47, 2, 1.5);
-    // White POLICE stripe
-    g.fillStyle(0xFFFFFF);
-    g.fillRect(14, 8, 40, 3);
-    g.fillRect(14, H - 11, 40, 3);
-    // Windshield
-    g.fillStyle(CONFIG.COLORS.CAR_WINDOW);
-    g.fillRect(50, 12, 16, 22);
-    g.fillStyle(0xFFFFFF, 0.3);
-    g.fillRect(50, 12, 16, 2);
-    g.fillRect(50, 12, 2, 22);
-    // Rear window
-    g.fillStyle(CONFIG.COLORS.CAR_WINDOW);
-    g.fillRect(4, 14, 12, 18);
-    g.fillStyle(0xFFFFFF, 0.2);
-    g.fillRect(4, 14, 12, 2);
-    // Wheels — wider
-    g.fillStyle(0x222222);
-    g.fillRect(8, 0, 16, 9);
-    g.fillRect(8, H - 9, 16, 9);
-    g.fillRect(44, 0, 16, 9);
-    g.fillRect(44, H - 9, 16, 9);
-    g.fillStyle(0x666666);
-    g.fillCircle(16, 4, 4);
-    g.fillCircle(16, H - 5, 4);
-    g.fillCircle(52, 4, 4);
-    g.fillCircle(52, H - 5, 4);
-    // Siren bar
-    g.fillStyle(0x333333);
-    g.fillRect(28, 4, 16, 5);
-    g.fillStyle(CONFIG.COLORS.SIREN_RED);
-    g.fillCircle(32, 6, 4);
-    g.fillStyle(CONFIG.COLORS.SIREN_BLUE);
-    g.fillCircle(40, 6, 4);
-    g.fillStyle(0xFFFFFF, 0.4);
-    g.fillCircle(31, 5, 2);
-    g.fillCircle(39, 5, 2);
-    // Headlights
-    g.fillStyle(0xFFEB3B);
-    g.fillRect(W - 4, 14, 4, 6);
-    g.fillRect(W - 4, 26, 4, 6);
-    // Taillights
-    g.fillStyle(0xF44336);
-    g.fillRect(0, 14, 4, 6);
-    g.fillRect(0, 26, 4, 6);
-  }
-
-  _drawJeepTexture(g, W, H) {
-    const bodyColor = 0x33691E;
-    const accentColor = 0x1565C0;
-    // Shadow
-    g.fillStyle(0x000000, 0.15);
-    g.fillRect(4, 8, W - 4, H - 8);
-    // Body — olive green
-    g.fillStyle(bodyColor);
+    g.fillRect(4, 10, W - 4, H - 10);
+    // Body — crisp white
+    g.fillStyle(0xF0F0F0);
     g.fillRect(2, 7, W - 4, H - 14);
     // 3D edges
-    g.fillStyle(0x000000, 0.2);
+    g.fillStyle(0x000000, 0.15);
     g.fillRect(2, H - 9, W - 4, 2);
     g.fillRect(W - 4, 7, 2, H - 14);
-    g.fillStyle(0xFFFFFF, 0.15);
+    g.fillStyle(0xFFFFFF, 0.4);
     g.fillRect(2, 7, W - 4, 2);
     g.fillRect(2, 7, 2, H - 14);
-    // Blue accent stripe
-    g.fillStyle(accentColor);
-    g.fillRect(14, 7, 36, 3);
-    g.fillRect(14, H - 10, 36, 3);
-    // Roll bar (open-top) — thin gray bar
-    g.fillStyle(0x888888);
-    g.fillRect(12, 3, 40, 4);
-    g.fillRect(12, 3, 3, H - 8);
-    g.fillRect(49, 3, 3, H - 8);
-    // Studs on roll bar
+    // Bold blue stripe down the middle
+    g.fillStyle(0x1565C0);
+    g.fillRect(10, 14, 50, 4);
+    g.fillRect(10, H - 18, 50, 4);
+    // Blue hood and trunk accents
+    g.fillStyle(0x1565C0);
+    g.fillRect(2, 7, 10, H - 14);
+    g.fillRect(W - 12, 7, 10, H - 14);
+    // Roof rack — chrome bar with blue lights
+    g.fillStyle(0xCCCCCC);
+    g.fillRect(14, 3, 42, 5);
+    g.fillStyle(0x1565C0);
+    g.fillCircle(22, 5, 3);
+    g.fillCircle(35, 5, 3);
+    g.fillCircle(48, 5, 3);
+    // Bull bar at front
     g.fillStyle(0xAAAAAA);
-    g.fillCircle(24, 2, 3);
-    g.fillCircle(40, 2, 3);
-    g.fillStyle(0xFFFFFF, 0.25);
-    g.fillCircle(23, 1, 1.5);
-    g.fillCircle(39, 1, 1.5);
-    // Windshield (shorter, open-top)
-    g.fillStyle(CONFIG.COLORS.CAR_WINDOW);
-    g.fillRect(46, 10, 12, 22);
-    g.fillStyle(0xFFFFFF, 0.3);
-    g.fillRect(46, 10, 12, 2);
-    // Wider wheel arches
-    g.fillStyle(0x222222);
-    g.fillRect(6, 0, 16, 8);
-    g.fillRect(6, H - 8, 16, 8);
-    g.fillRect(42, 0, 16, 8);
-    g.fillRect(42, H - 8, 16, 8);
-    g.fillStyle(0x666666);
-    g.fillCircle(14, 4, 4);
-    g.fillCircle(14, H - 4, 4);
-    g.fillCircle(50, 4, 4);
-    g.fillCircle(50, H - 4, 4);
-    // Siren on roll bar
-    g.fillStyle(0x333333);
-    g.fillRect(28, 0, 14, 4);
-    g.fillStyle(CONFIG.COLORS.SIREN_RED);
-    g.fillCircle(31, 2, 3);
-    g.fillStyle(CONFIG.COLORS.SIREN_BLUE);
-    g.fillCircle(39, 2, 3);
-    g.fillStyle(0xFFFFFF, 0.4);
-    g.fillCircle(30, 1, 1.5);
-    g.fillCircle(38, 1, 1.5);
-    // Headlights
-    g.fillStyle(0xFFEB3B);
-    g.fillRect(W - 4, 12, 4, 5);
-    g.fillRect(W - 4, 25, 4, 5);
-    // Taillights
-    g.fillStyle(0xF44336);
-    g.fillRect(0, 12, 4, 5);
-    g.fillRect(0, 25, 4, 5);
-  }
-
-  _drawMotorcycleTexture(g, W, H) {
-    const bodyColor = 0x1565C0;
-    // Shadow
-    g.fillStyle(0x000000, 0.15);
-    g.fillRect(4, 6, W - 8, H - 6);
-    // Narrow body
-    g.fillStyle(bodyColor);
-    g.fillRect(12, 8, 30, H - 16);
-    // 3D edges
-    g.fillStyle(0x000000, 0.2);
-    g.fillRect(12, H - 10, 30, 2);
-    g.fillRect(40, 8, 2, H - 16);
-    g.fillStyle(0xFFFFFF, 0.15);
-    g.fillRect(12, 8, 30, 2);
-    g.fillRect(12, 8, 2, H - 16);
-    // Sidecar (right side)
-    g.fillStyle(bodyColor);
-    g.fillRect(18, H - 12, 20, 10);
-    g.fillStyle(0x000000, 0.15);
-    g.fillRect(18, H - 4, 20, 2);
-    g.fillRect(36, H - 12, 2, 10);
-    g.fillStyle(0xFFFFFF, 0.1);
-    g.fillRect(18, H - 12, 20, 2);
-    // Large wheels
-    g.fillStyle(0x222222);
-    g.fillRect(2, 10, 12, 12);
-    g.fillRect(40, 10, 12, 12);
-    g.fillStyle(0x666666);
-    g.fillCircle(8, 16, 4);
-    g.fillCircle(46, 16, 4);
-    // Sidecar wheel
-    g.fillStyle(0x222222);
-    g.fillRect(24, H - 6, 10, 6);
-    g.fillStyle(0x666666);
-    g.fillCircle(29, H - 3, 3);
-    // Handlebars — thin gray bar at front
+    g.fillRect(W - 4, 8, 4, H - 16);
     g.fillStyle(0x888888);
-    g.fillRect(44, 6, 8, 3);
-    g.fillRect(44, H - 9, 8, 3);
-    // Windshield (small)
+    g.fillRect(W - 3, 12, 3, 3);
+    g.fillRect(W - 3, H - 15, 3, 3);
+    // Windshield — big
     g.fillStyle(CONFIG.COLORS.CAR_WINDOW);
-    g.fillRect(42, 12, 6, 8);
-    g.fillStyle(0xFFFFFF, 0.3);
-    g.fillRect(42, 12, 6, 2);
-    // Single red siren light on top
-    g.fillStyle(CONFIG.COLORS.SIREN_RED);
-    g.fillCircle(27, 7, 4);
-    g.fillStyle(0xFFFFFF, 0.4);
-    g.fillCircle(26, 6, 2);
-    // Headlight
-    g.fillStyle(0xFFEB3B);
-    g.fillRect(W - 4, 14, 4, 4);
-    // Taillight
-    g.fillStyle(0xF44336);
-    g.fillRect(0, 14, 4, 4);
-  }
-
-  _drawMonsterTruckTexture(g, W, H) {
-    const bodyColor = 0x212121;
-    const accentColor = 0xFFD600;
-    // Shadow
-    g.fillStyle(0x000000, 0.15);
-    g.fillRect(6, 12, W - 6, H - 12);
-    // Raised body (sits higher)
-    g.fillStyle(bodyColor);
-    g.fillRect(4, 10, W - 8, H - 22);
-    // 3D edges
-    g.fillStyle(0x000000, 0.25);
-    g.fillRect(4, H - 14, W - 8, 2);
-    g.fillRect(W - 6, 10, 2, H - 22);
-    g.fillStyle(0xFFFFFF, 0.12);
-    g.fillRect(4, 10, W - 8, 2);
-    g.fillRect(4, 10, 2, H - 22);
-    // Yellow accent stripe
-    g.fillStyle(accentColor);
-    g.fillRect(14, 10, 50, 4);
-    g.fillRect(14, H - 16, 50, 4);
-    // "MJ" text area
-    g.fillStyle(accentColor);
-    g.fillRect(28, 18, 14, 10);
-    g.fillStyle(bodyColor);
-    g.fillRect(30, 20, 10, 6);
-    // Studs on top (chunky)
-    g.fillStyle(bodyColor);
-    g.fillCircle(20, 8, 4);
-    g.fillCircle(40, 8, 4);
-    g.fillCircle(60, 8, 4);
-    g.fillStyle(0xFFFFFF, 0.2);
-    g.fillCircle(19, 7, 2);
-    g.fillCircle(39, 7, 2);
-    g.fillCircle(59, 7, 2);
-    // Windshield
-    g.fillStyle(CONFIG.COLORS.CAR_WINDOW);
-    g.fillRect(58, 14, 16, 20);
-    g.fillStyle(0xFFFFFF, 0.3);
-    g.fillRect(58, 14, 16, 2);
-    g.fillRect(58, 14, 2, 20);
-    // OVERSIZED wheels (bigger, treaded)
+    g.fillRect(50, 10, 14, 26);
+    g.fillStyle(0xFFFFFF, 0.35);
+    g.fillRect(50, 10, 14, 2);
+    // Chunky wheels
     g.fillStyle(0x111111);
-    g.fillRect(6, 0, 20, 12);
-    g.fillRect(6, H - 12, 20, 12);
-    g.fillRect(54, 0, 20, 12);
-    g.fillRect(54, H - 12, 20, 12);
-    // Tread marks on wheels
-    g.fillStyle(0x333333);
-    for (let t = 0; t < 4; t++) {
-      g.fillRect(8 + t * 5, 1, 2, 10);
-      g.fillRect(8 + t * 5, H - 11, 2, 10);
-      g.fillRect(56 + t * 5, 1, 2, 10);
-      g.fillRect(56 + t * 5, H - 11, 2, 10);
-    }
-    // Wheel hubs (bigger)
+    g.fillRect(8, 0, 18, 9);
+    g.fillRect(8, H - 9, 18, 9);
+    g.fillRect(44, 0, 18, 9);
+    g.fillRect(44, H - 9, 18, 9);
     g.fillStyle(0x888888);
-    g.fillCircle(16, 6, 5);
-    g.fillCircle(16, H - 6, 5);
-    g.fillCircle(64, 6, 5);
-    g.fillCircle(64, H - 6, 5);
-    // Wide siren bar
+    g.fillCircle(17, 4, 4);
+    g.fillCircle(17, H - 5, 4);
+    g.fillCircle(53, 4, 4);
+    g.fillCircle(53, H - 5, 4);
+    // Siren bar
     g.fillStyle(0x333333);
-    g.fillRect(22, 6, 24, 5);
+    g.fillRect(26, 2, 18, 4);
     g.fillStyle(CONFIG.COLORS.SIREN_RED);
-    g.fillCircle(28, 8, 4);
+    g.fillCircle(30, 3, 4);
     g.fillStyle(CONFIG.COLORS.SIREN_BLUE);
-    g.fillCircle(40, 8, 4);
-    g.fillStyle(0xFFFFFF, 0.4);
-    g.fillCircle(27, 7, 2);
-    g.fillCircle(39, 7, 2);
-    // Headlights (big)
+    g.fillCircle(40, 3, 4);
+    g.fillStyle(0xFFFFFF, 0.5);
+    g.fillCircle(29, 2, 2);
+    g.fillCircle(39, 2, 2);
+    // Headlights (bright)
     g.fillStyle(0xFFEB3B);
-    g.fillRect(W - 6, 16, 6, 7);
+    g.fillRect(W - 6, 12, 6, 7);
     g.fillRect(W - 6, 27, 6, 7);
     // Taillights
     g.fillStyle(0xF44336);
-    g.fillRect(0, 16, 6, 7);
-    g.fillRect(0, 27, 6, 7);
+    g.fillRect(0, 12, 4, 6);
+    g.fillRect(0, 28, 4, 6);
+  }
+
+  _drawJeepTexture(g, W, H) {
+    // BRIGHT LIME GREEN off-road jeep with chunky fender flares
+    // Shadow
+    g.fillStyle(0x000000, 0.2);
+    g.fillRect(2, 8, W - 2, H - 8);
+    // Body — vibrant green
+    g.fillStyle(0x4CAF50);
+    g.fillRect(4, 9, W - 8, H - 18);
+    // 3D edges
+    g.fillStyle(0x000000, 0.2);
+    g.fillRect(4, H - 11, W - 8, 2);
+    g.fillRect(W - 6, 9, 2, H - 18);
+    g.fillStyle(0xFFFFFF, 0.2);
+    g.fillRect(4, 9, W - 8, 2);
+    g.fillRect(4, 9, 2, H - 18);
+    // Dark green camo patches
+    g.fillStyle(0x2E7D32, 0.6);
+    g.fillRect(12, 12, 12, 8);
+    g.fillRect(30, 16, 10, 6);
+    g.fillRect(18, H - 18, 14, 6);
+    // Yellow accent stripe
+    g.fillStyle(0xFFEB3B);
+    g.fillRect(10, 9, 44, 3);
+    g.fillRect(10, H - 12, 44, 3);
+    // Fender flares — extend BEYOND body (key visual difference)
+    g.fillStyle(0x333333);
+    g.fillRect(4, 0, 20, 10);
+    g.fillRect(4, H - 10, 20, 10);
+    g.fillRect(38, 0, 20, 10);
+    g.fillRect(38, H - 10, 20, 10);
+    // Wheels inside flares — big round
+    g.fillStyle(0x111111);
+    g.fillCircle(14, 4, 7);
+    g.fillCircle(14, H - 4, 7);
+    g.fillCircle(48, 4, 7);
+    g.fillCircle(48, H - 4, 7);
+    g.fillStyle(0x888888);
+    g.fillCircle(14, 4, 3);
+    g.fillCircle(14, H - 4, 3);
+    g.fillCircle(48, 4, 3);
+    g.fillCircle(48, H - 4, 3);
+    // Roll bar — chrome
+    g.fillStyle(0xAAAAAA);
+    g.fillRect(16, 6, 30, 3);
+    // Open top visible — darker interior
+    g.fillStyle(0x1B5E20, 0.4);
+    g.fillRect(18, 13, 26, H - 26);
+    // Windshield (short)
+    g.fillStyle(CONFIG.COLORS.CAR_WINDOW);
+    g.fillRect(48, 12, 8, 18);
+    g.fillStyle(0xFFFFFF, 0.3);
+    g.fillRect(48, 12, 8, 2);
+    // Spare tire on back (circle)
+    g.fillStyle(0x222222);
+    g.fillCircle(4, H / 2, 7);
+    g.fillStyle(0x555555);
+    g.fillCircle(4, H / 2, 3);
+    // Siren on roll bar
+    g.fillStyle(CONFIG.COLORS.SIREN_RED);
+    g.fillCircle(28, 5, 3);
+    g.fillStyle(CONFIG.COLORS.SIREN_BLUE);
+    g.fillCircle(36, 5, 3);
+    g.fillStyle(0xFFFFFF, 0.4);
+    g.fillCircle(27, 4, 1.5);
+    g.fillCircle(35, 4, 1.5);
+    // Headlights
+    g.fillStyle(0xFFEB3B);
+    g.fillRect(W - 4, 14, 4, 5);
+    g.fillRect(W - 4, 23, 4, 5);
+    // Taillights
+    g.fillStyle(0xF44336);
+    g.fillRect(0, 14, 3, 5);
+    g.fillRect(0, 23, 3, 5);
+  }
+
+  _drawMotorcycleTexture(g, W, H) {
+    // BLACK & WHITE highway patrol bike — narrow, rounded, exposed wheels
+    const cx = W / 2;
+    const cy = H / 2;
+    // Shadow
+    g.fillStyle(0x000000, 0.15);
+    g.fillEllipse(cx, cy + 2, W - 8, H - 10);
+    // Big exposed rear wheel (circle)
+    g.fillStyle(0x111111);
+    g.fillCircle(10, cy, 10);
+    g.fillStyle(0x555555);
+    g.fillCircle(10, cy, 5);
+    g.fillStyle(0x333333);
+    g.fillCircle(10, cy, 2);
+    // Big exposed front wheel (circle)
+    g.fillStyle(0x111111);
+    g.fillCircle(W - 10, cy, 10);
+    g.fillStyle(0x555555);
+    g.fillCircle(W - 10, cy, 5);
+    g.fillStyle(0x333333);
+    g.fillCircle(W - 10, cy, 2);
+    // Narrow body — black, connecting wheels
+    g.fillStyle(0x222222);
+    g.fillRect(14, cy - 5, W - 28, 10);
+    // White fairing/body panels (rounded look using overlapping shapes)
+    g.fillStyle(0xF5F5F5);
+    g.fillEllipse(cx, cy, 22, 14);
+    // Black seat
+    g.fillStyle(0x111111);
+    g.fillEllipse(cx - 4, cy, 12, 8);
+    // Blue police stripe on fairing
+    g.fillStyle(0x1565C0);
+    g.fillRect(cx - 8, cy - 2, 16, 4);
+    // Windscreen at front — angled
+    g.fillStyle(CONFIG.COLORS.CAR_WINDOW, 0.8);
+    g.fillRect(W - 18, cy - 7, 6, 14);
+    g.fillStyle(0xFFFFFF, 0.3);
+    g.fillRect(W - 18, cy - 7, 6, 2);
+    // Handlebars
+    g.fillStyle(0x888888);
+    g.fillRect(W - 14, cy - 10, 4, 4);
+    g.fillRect(W - 14, cy + 6, 4, 4);
+    // Single red siren light on top
+    g.fillStyle(CONFIG.COLORS.SIREN_RED);
+    g.fillCircle(cx + 2, cy - 8, 4);
+    g.fillStyle(0xFFFFFF, 0.5);
+    g.fillCircle(cx + 1, cy - 9, 2);
+    // Headlight (bright circle)
+    g.fillStyle(0xFFEB3B);
+    g.fillCircle(W - 4, cy, 4);
+    g.fillStyle(0xFFFFFF, 0.4);
+    g.fillCircle(W - 5, cy - 1, 2);
+    // Taillight
+    g.fillStyle(0xF44336);
+    g.fillCircle(4, cy, 3);
+    // Exhaust pipes
+    g.fillStyle(0x666666);
+    g.fillRect(8, cy + 8, 12, 3);
+    g.fillRect(8, cy - 11, 12, 3);
+  }
+
+  _drawMonsterTruckTexture(g, W, H) {
+    // MASSIVE black truck with orange flames, HUGE round wheels, raised high
+    const cx = W / 2;
+    const cy = H / 2;
+    // --- HUGE WHEELS (the star of the show) ---
+    // Rear wheels
+    g.fillStyle(0x0A0A0A);
+    g.fillCircle(16, 10, 14);
+    g.fillCircle(16, H - 10, 14);
+    // Rear tire treads
+    g.fillStyle(0x333333);
+    for (let a = 0; a < 8; a++) {
+      const ang = (a / 8) * Math.PI * 2;
+      g.fillRect(16 + Math.cos(ang) * 10 - 2, 10 + Math.sin(ang) * 10 - 1, 4, 2);
+      g.fillRect(16 + Math.cos(ang) * 10 - 2, H - 10 + Math.sin(ang) * 10 - 1, 4, 2);
+    }
+    // Rear hubs — chrome
+    g.fillStyle(0xCCCCCC);
+    g.fillCircle(16, 10, 5);
+    g.fillCircle(16, H - 10, 5);
+    g.fillStyle(0x888888);
+    g.fillCircle(16, 10, 2);
+    g.fillCircle(16, H - 10, 2);
+    // Front wheels
+    g.fillStyle(0x0A0A0A);
+    g.fillCircle(W - 18, 10, 14);
+    g.fillCircle(W - 18, H - 10, 14);
+    g.fillStyle(0x333333);
+    for (let a = 0; a < 8; a++) {
+      const ang = (a / 8) * Math.PI * 2;
+      g.fillRect(W - 18 + Math.cos(ang) * 10 - 2, 10 + Math.sin(ang) * 10 - 1, 4, 2);
+      g.fillRect(W - 18 + Math.cos(ang) * 10 - 2, H - 10 + Math.sin(ang) * 10 - 1, 4, 2);
+    }
+    g.fillStyle(0xCCCCCC);
+    g.fillCircle(W - 18, 10, 5);
+    g.fillCircle(W - 18, H - 10, 5);
+    g.fillStyle(0x888888);
+    g.fillCircle(W - 18, 10, 2);
+    g.fillCircle(W - 18, H - 10, 2);
+    // --- RAISED BODY (sits above wheels) ---
+    // Suspension visible — axle bars
+    g.fillStyle(0x555555);
+    g.fillRect(12, cy - 2, W - 24, 4);
+    // Body — black, raised above wheels
+    g.fillStyle(0x1A1A1A);
+    g.fillRect(20, cy - 14, W - 40, 28);
+    // 3D edges on body
+    g.fillStyle(0x000000, 0.3);
+    g.fillRect(20, cy + 12, W - 40, 2);
+    g.fillRect(W - 22, cy - 14, 2, 28);
+    g.fillStyle(0xFFFFFF, 0.1);
+    g.fillRect(20, cy - 14, W - 40, 2);
+    g.fillRect(20, cy - 14, 2, 28);
+    // FLAME DECALS — orange/red triangles on sides
+    g.fillStyle(0xFF6D00);
+    g.fillTriangle(24, cy - 6, 24, cy + 6, 44, cy);
+    g.fillTriangle(24, cy - 6, 24, cy + 6, 44, cy);
+    g.fillStyle(0xF44336);
+    g.fillTriangle(24, cy - 4, 24, cy + 4, 38, cy);
+    g.fillStyle(0xFFD600);
+    g.fillTriangle(24, cy - 2, 24, cy + 2, 32, cy);
+    // Mirror flames on other side
+    g.fillStyle(0xFF6D00);
+    g.fillTriangle(24, cy - 6, 24, cy + 6, 44, cy);
+    // Yellow "MJ" badge
+    g.fillStyle(0xFFD600);
+    g.fillRect(cx - 6, cy - 8, 16, 10);
+    g.fillStyle(0x1A1A1A);
+    g.fillRect(cx - 4, cy - 6, 12, 6);
+    // Windshield — aggressive angle
+    g.fillStyle(CONFIG.COLORS.CAR_WINDOW);
+    g.fillRect(W - 28, cy - 10, 8, 20);
+    g.fillStyle(0xFFFFFF, 0.3);
+    g.fillRect(W - 28, cy - 10, 8, 2);
+    // Roof — flat top
+    g.fillStyle(0x111111);
+    g.fillRect(30, cy - 16, W - 50, 4);
+    // Wide siren bar on roof
+    g.fillStyle(0x333333);
+    g.fillRect(35, cy - 18, 26, 4);
+    g.fillStyle(CONFIG.COLORS.SIREN_RED);
+    g.fillCircle(41, cy - 17, 4);
+    g.fillStyle(CONFIG.COLORS.SIREN_BLUE);
+    g.fillCircle(55, cy - 17, 4);
+    g.fillStyle(0xFFFFFF, 0.5);
+    g.fillCircle(40, cy - 18, 2);
+    g.fillCircle(54, cy - 18, 2);
+    // Headlights — big and bright
+    g.fillStyle(0xFFEB3B);
+    g.fillCircle(W - 22, cy - 6, 4);
+    g.fillCircle(W - 22, cy + 6, 4);
+    g.fillStyle(0xFFFFFF, 0.4);
+    g.fillCircle(W - 23, cy - 7, 2);
+    g.fillCircle(W - 23, cy + 5, 2);
+    // Taillights — red glow
+    g.fillStyle(0xF44336);
+    g.fillCircle(22, cy - 6, 3);
+    g.fillCircle(22, cy + 6, 3);
   }
 
   toggleSiren() {

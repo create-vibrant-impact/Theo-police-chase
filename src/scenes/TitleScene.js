@@ -104,7 +104,7 @@ class TitleScene extends Phaser.Scene {
         duration: 100,
         yoyo: true,
         onComplete: () => {
-          this.scene.start('GameScene');
+          this.scene.start('GameScene', { round: 1 });
         },
       });
     };
