@@ -122,12 +122,12 @@ class CelebrationScene extends Phaser.Scene {
       delay: 1000,
     });
 
-    // Button interaction
-    const hitArea = this.add.rectangle(cx, btnY, btnW, btnH, 0x000000, 0)
-      .setInteractive()
+    // Button interaction — use text with padding for reliable click
+    btnText.setInteractive({ useHandCursor: true })
+      .setPadding(40, 20)
       .on('pointerdown', () => {
         this.tweens.add({
-          targets: [btn, btnText, hitArea],
+          targets: [btn, btnText],
           scaleX: 0.9,
           scaleY: 0.9,
           duration: 100,
@@ -137,6 +137,15 @@ class CelebrationScene extends Phaser.Scene {
           },
         });
       });
+
+    // Fallback — scene-level click near button area
+    this.input.on('pointerdown', (pointer) => {
+      const dy = Math.abs(pointer.y - btnY);
+      const dx = Math.abs(pointer.x - cx);
+      if (dx < btnW / 2 + 20 && dy < btnH / 2 + 20) {
+        this.scene.start('GameScene');
+      }
+    });
 
     // Camera shake on entry
     this.cameras.main.shake(300, 0.01);
