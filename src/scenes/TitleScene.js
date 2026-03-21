@@ -58,6 +58,19 @@ class TitleScene extends Phaser.Scene {
     // Police car illustration on title
     this.drawPoliceCar(cx, 340, 2);
 
+    // Siren flash on title car
+    const sirenRed = this.add.circle(cx - 10, 314, 12, CONFIG.COLORS.SIREN_RED, 0.6);
+    const sirenBlue = this.add.circle(cx + 10, 314, 12, CONFIG.COLORS.SIREN_BLUE, 0.6);
+    sirenBlue.setAlpha(0);
+    this.time.addEvent({
+      delay: 400,
+      loop: true,
+      callback: () => {
+        sirenRed.setAlpha(sirenRed.alpha > 0 ? 0 : 0.6);
+        sirenBlue.setAlpha(sirenBlue.alpha > 0 ? 0 : 0.6);
+      },
+    });
+
     // PLAY button
     const btnW = 220;
     const btnH = 80;
