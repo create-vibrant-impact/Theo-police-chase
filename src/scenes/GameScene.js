@@ -74,6 +74,7 @@ class GameScene extends Phaser.Scene {
     this.obstacles = this.physics.add.group();
     this.isSpinning = false;
     this.isSlowed = false;
+    this.obstacleImmune = false;
     if (this.roundConfig.obstacles.length > 0) {
       this.spawnObstacles();
     }
@@ -970,7 +971,8 @@ class GameScene extends Phaser.Scene {
         } while (
           attempts < 20 && (
             (Math.abs(ox - roadCenterX) < 50 && Math.abs(oy - roadCenterY) < 50) ||
-            Phaser.Math.Distance.Between(ox, oy, CONFIG.JAIL_X, CONFIG.JAIL_Y) < 80
+            Phaser.Math.Distance.Between(ox, oy, CONFIG.JAIL_X, CONFIG.JAIL_Y) < 80 ||
+            Phaser.Math.Distance.Between(ox, oy, 150, CONFIG.HEIGHT / 2) < 120
           )
         );
 
@@ -1028,10 +1030,11 @@ class GameScene extends Phaser.Scene {
       return;
     }
 
-    if (this.isSpinning || this.isSlowed) return;
+    if (this.isSpinning || this.isSlowed || this.obstacleImmune) return;
 
     if (type === 'oilslick') {
       this.isSpinning = true;
+      this.obstacleImmune = true;
       this.spinVx = this.car.body.velocity.x;
       this.spinVy = this.car.body.velocity.y;
       this.tweens.add({
@@ -1042,8 +1045,13 @@ class GameScene extends Phaser.Scene {
       this.time.delayedCall(CONFIG.OIL_SLICK_COAST_DURATION, () => {
         this.isSpinning = false;
       });
+      // Immunity window — prevents re-trigger while still overlapping
+      this.time.delayedCall(CONFIG.OIL_SLICK_COAST_DURATION + 500, () => {
+        this.obstacleImmune = false;
+      });
     } else if (type === 'pothole') {
       this.isSlowed = true;
+      this.obstacleImmune = true;
       SoundManager.playDeflate();
       this.tweens.add({
         targets: this.car,
@@ -1061,6 +1069,9 @@ class GameScene extends Phaser.Scene {
       this.time.delayedCall(CONFIG.POTHOLE_SLOW_DURATION, () => {
         this.isSlowed = false;
         if (this.flatIndicator) { this.flatIndicator.destroy(); this.flatIndicator = null; }
+      });
+      this.time.delayedCall(CONFIG.POTHOLE_SLOW_DURATION + 500, () => {
+        this.obstacleImmune = false;
       });
     }
   }
