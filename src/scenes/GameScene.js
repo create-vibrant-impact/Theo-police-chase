@@ -107,28 +107,46 @@ class GameScene extends Phaser.Scene {
   // --- ENVIRONMENT DRAWING ---
 
   drawEnvironment() {
-    // Grass background
+    // Grass baseplate (Lego green baseplate look)
     this.add.rectangle(CONFIG.WIDTH / 2, CONFIG.HEIGHT / 2, CONFIG.WIDTH, CONFIG.HEIGHT, CONFIG.COLORS.GRASS);
 
-    // Darker grass patches
-    for (let i = 0; i < 8; i++) {
-      const px = Phaser.Math.Between(50, CONFIG.WIDTH - 50);
-      const py = Phaser.Math.Between(50, CONFIG.HEIGHT - 50);
-      this.add.rectangle(px, py, Phaser.Math.Between(40, 100), Phaser.Math.Between(30, 60), CONFIG.COLORS.GRASS_DARK, 0.3);
+    // Lego studs on grass baseplate
+    const g = this.add.graphics();
+    for (let sx = 20; sx < CONFIG.WIDTH; sx += 40) {
+      for (let sy = 20; sy < CONFIG.HEIGHT; sy += 40) {
+        // Skip road areas
+        const onHRoad = Math.abs(sy - CONFIG.HEIGHT / 2) < 35;
+        const onVRoad = Math.abs(sx - CONFIG.WIDTH / 2) < 35;
+        if (!onHRoad && !onVRoad) {
+          g.fillStyle(CONFIG.COLORS.GRASS_DARK, 0.25);
+          g.fillCircle(sx, sy, 5);
+          g.fillStyle(0xFFFFFF, 0.08);
+          g.fillCircle(sx - 1, sy - 1, 3);
+        }
+      }
     }
 
-    // Roads (cross pattern)
-    this.add.rectangle(CONFIG.WIDTH / 2, CONFIG.HEIGHT / 2, CONFIG.WIDTH, 60, CONFIG.COLORS.ROAD); // horizontal
-    this.add.rectangle(CONFIG.WIDTH / 2, CONFIG.HEIGHT / 2, 60, CONFIG.HEIGHT, CONFIG.COLORS.ROAD); // vertical
-    // Road center lines
-    for (let x = 0; x < CONFIG.WIDTH; x += 40) {
-      this.add.rectangle(x, CONFIG.HEIGHT / 2, 16, 3, CONFIG.COLORS.ROAD_LINE);
+    // Roads (cross pattern) — dark gray Lego plates
+    this.add.rectangle(CONFIG.WIDTH / 2, CONFIG.HEIGHT / 2, CONFIG.WIDTH, 60, CONFIG.COLORS.ROAD);
+    this.add.rectangle(CONFIG.WIDTH / 2, CONFIG.HEIGHT / 2, 60, CONFIG.HEIGHT, CONFIG.COLORS.ROAD);
+    // Road brick lines
+    const rg = this.add.graphics();
+    rg.lineStyle(1, 0x616161, 0.3);
+    for (let x = 0; x < CONFIG.WIDTH; x += 30) {
+      rg.lineBetween(x, CONFIG.HEIGHT / 2 - 30, x, CONFIG.HEIGHT / 2 + 30);
     }
-    for (let y = 0; y < CONFIG.HEIGHT; y += 40) {
-      this.add.rectangle(CONFIG.WIDTH / 2, y, 3, 16, CONFIG.COLORS.ROAD_LINE);
+    for (let y = 0; y < CONFIG.HEIGHT; y += 30) {
+      rg.lineBetween(CONFIG.WIDTH / 2 - 30, y, CONFIG.WIDTH / 2 + 30, y);
+    }
+    // Road center lines (yellow studs)
+    for (let x = 0; x < CONFIG.WIDTH; x += 30) {
+      this.add.rectangle(x, CONFIG.HEIGHT / 2, 12, 4, CONFIG.COLORS.ROAD_LINE);
+    }
+    for (let y = 0; y < CONFIG.HEIGHT; y += 30) {
+      this.add.rectangle(CONFIG.WIDTH / 2, y, 4, 12, CONFIG.COLORS.ROAD_LINE);
     }
 
-    // Trees
+    // Lego trees
     this.drawTree(60, 120);
     this.drawTree(200, 80);
     this.drawTree(60, 550);
@@ -136,12 +154,11 @@ class GameScene extends Phaser.Scene {
     this.drawTree(750, 600);
     this.drawTree(900, 650);
 
-    // Flowers scattered around
+    // Lego flowers
     const flowerColors = [CONFIG.COLORS.FLOWER_RED, CONFIG.COLORS.FLOWER_YELLOW, CONFIG.COLORS.FLOWER_PURPLE];
     for (let i = 0; i < 20; i++) {
       const fx = Phaser.Math.Between(20, CONFIG.WIDTH - 20);
       const fy = Phaser.Math.Between(20, CONFIG.HEIGHT - 20);
-      // Don't draw on roads
       const onHRoad = Math.abs(fy - CONFIG.HEIGHT / 2) < 35;
       const onVRoad = Math.abs(fx - CONFIG.WIDTH / 2) < 35;
       if (!onHRoad && !onVRoad) {
@@ -150,26 +167,60 @@ class GameScene extends Phaser.Scene {
     }
   }
 
+  // Helper: draw a Lego stud (round bump on top of brick)
+  drawStud(g, x, y, color) {
+    g.fillStyle(color);
+    g.fillCircle(x, y, 4);
+    // Highlight for 3D effect
+    g.fillStyle(0xFFFFFF, 0.3);
+    g.fillCircle(x - 1, y - 1, 2);
+  }
+
+  // Helper: draw a Lego brick with outline and studs
+  drawBrick(g, x, y, w, h, color, studs) {
+    // Brick body
+    g.fillStyle(color);
+    g.fillRect(x, y, w, h);
+    // Dark edge (bottom and right) for 3D depth
+    g.fillStyle(0x000000, 0.2);
+    g.fillRect(x, y + h - 2, w, 2);
+    g.fillRect(x + w - 2, y, 2, h);
+    // Light edge (top and left) for 3D highlight
+    g.fillStyle(0xFFFFFF, 0.15);
+    g.fillRect(x, y, w, 2);
+    g.fillRect(x, y, 2, h);
+    // Studs on top
+    if (studs) {
+      const studSpacing = w / (studs + 1);
+      for (let i = 1; i <= studs; i++) {
+        this.drawStud(g, x + studSpacing * i, y - 2, color);
+      }
+    }
+  }
+
   drawTree(x, y) {
     const g = this.add.graphics();
-    g.fillStyle(CONFIG.COLORS.TREE_TRUNK);
-    g.fillRect(x - 6, y + 10, 12, 25);
-    g.fillStyle(CONFIG.COLORS.TREE_LEAVES);
-    g.fillRect(x - 22, y - 5, 44, 22);
-    g.fillStyle(CONFIG.COLORS.TREE_LEAVES_LIGHT);
-    g.fillRect(x - 16, y - 20, 32, 18);
-    g.fillStyle(CONFIG.COLORS.TREE_LEAVES);
-    g.fillRect(x - 10, y - 32, 20, 15);
+    // Trunk — brown Lego brick
+    this.drawBrick(g, x - 8, y + 10, 16, 30, CONFIG.COLORS.TREE_TRUNK, 1);
+    // Canopy — stacked green Lego bricks (pyramid)
+    this.drawBrick(g, x - 28, y - 5, 56, 18, CONFIG.COLORS.TREE_LEAVES, 4);
+    this.drawBrick(g, x - 20, y - 22, 40, 18, CONFIG.COLORS.TREE_LEAVES_LIGHT, 3);
+    this.drawBrick(g, x - 12, y - 38, 24, 18, CONFIG.COLORS.TREE_LEAVES, 2);
   }
 
   drawFlower(x, y, color) {
     const g = this.add.graphics();
+    // Stem — thin green brick
     g.fillStyle(0x388E3C);
-    g.fillRect(x - 1, y, 2, 7);
+    g.fillRect(x - 2, y, 4, 10);
+    // Flower head — Lego round piece (like a 1x1 round plate)
     g.fillStyle(color);
-    g.fillCircle(x, y - 2, 4);
+    g.fillCircle(x, y - 2, 6);
+    // Stud on flower
     g.fillStyle(0xFFEB3B);
-    g.fillCircle(x, y - 2, 1.5);
+    g.fillCircle(x, y - 2, 3);
+    g.fillStyle(0xFFFFFF, 0.3);
+    g.fillCircle(x - 1, y - 3, 1.5);
   }
 
   drawJailDetail() {
@@ -179,29 +230,55 @@ class GameScene extends Phaser.Scene {
     const jh = CONFIG.JAIL_HEIGHT;
     const g = this.add.graphics();
 
-    // Roof
-    g.fillStyle(0x5D4037);
-    g.fillTriangle(jx - jw / 2 - 10, jy - jh / 2, jx + jw / 2 + 10, jy - jh / 2, jx, jy - jh / 2 - 30);
-
-    // Door
-    this.jailDoor = this.add.rectangle(jx, jy + jh / 2 - 25, 30, 45, CONFIG.COLORS.JAIL_DOOR);
-
-    // Window bars
-    g.lineStyle(3, CONFIG.COLORS.JAIL_BARS);
-    const wy = jy - 15;
-    for (let i = -12; i <= 12; i += 8) {
-      g.lineBetween(jx + i, wy - 10, jx + i, wy + 10);
+    // Jail built from Lego bricks — stacked rows
+    const brickH = 14;
+    const rows = Math.floor(jh / brickH);
+    for (let r = 0; r < rows; r++) {
+      const by = jy - jh / 2 + r * brickH;
+      const offset = (r % 2 === 0) ? 0 : jw / 4; // Alternating brick offset
+      const brickW = jw / 2;
+      for (let c = 0; c < 3; c++) {
+        const bx = jx - jw / 2 + offset + c * brickW;
+        const clippedW = Math.min(brickW, jx + jw / 2 - bx);
+        if (clippedW > 0 && bx < jx + jw / 2) {
+          this.drawBrick(g, bx, by, clippedW, brickH, CONFIG.COLORS.JAIL_WALLS, 0);
+        }
+      }
     }
-    g.lineBetween(jx - 14, wy, jx + 14, wy);
 
-    // "JAIL" text
-    this.add.text(jx, jy - jh / 2 - 8, 'JAIL', {
+    // Studs on top row of jail
+    for (let s = 0; s < 5; s++) {
+      this.drawStud(g, jx - jw / 2 + 12 + s * 20, jy - jh / 2 - 2, CONFIG.COLORS.JAIL_WALLS);
+    }
+
+    // Roof — flat Lego plate (darker brown)
+    this.drawBrick(g, jx - jw / 2 - 8, jy - jh / 2 - 16, jw + 16, 14, 0x5D4037, 5);
+
+    // Door — dark brown brick
+    this.jailDoor = this.add.rectangle(jx, jy + jh / 2 - 22, 28, 40, CONFIG.COLORS.JAIL_DOOR);
+    // Door knob (round Lego stud)
+    const dk = this.add.graphics();
+    this.drawStud(dk, jx + 8, jy + jh / 2 - 22, 0xFFD600);
+
+    // Window — gray brick opening with bars
+    g.fillStyle(0x37474F);
+    g.fillRect(jx - 15, jy - 25, 30, 22);
+    // Bars (Lego technic rods)
+    g.fillStyle(CONFIG.COLORS.JAIL_BARS);
+    for (let i = -10; i <= 10; i += 7) {
+      g.fillRect(jx + i, jy - 25, 3, 22);
+    }
+    // Horizontal bar
+    g.fillRect(jx - 15, jy - 14, 30, 3);
+
+    // "JAIL" text on a Lego tile
+    g.fillStyle(0x455A64);
+    g.fillRect(jx - 24, jy - jh / 2 - 30, 48, 14);
+    this.add.text(jx, jy - jh / 2 - 23, 'JAIL', {
       fontFamily: 'Arial Black, Arial, sans-serif',
-      fontSize: '16px',
+      fontSize: '14px',
       fontStyle: 'bold',
       color: '#FFFFFF',
-      stroke: '#5D4037',
-      strokeThickness: 3,
     }).setOrigin(0.5);
   }
 
@@ -210,34 +287,93 @@ class GameScene extends Phaser.Scene {
   createCar(x, y) {
     // Only generate texture once (survives scene restart)
     if (!this.textures.exists('car')) {
+      const W = 64;
+      const H = 40;
       const g = this.add.graphics();
-      // Car body
+
+      // Shadow
+      g.fillStyle(0x000000, 0.15);
+      g.fillRect(4, 8, W - 4, H - 8);
+
+      // Car body — main Lego brick
       g.fillStyle(CONFIG.COLORS.CAR_BODY);
-      g.fillRect(0, 4, 50, 24);
-      // Windshield
+      g.fillRect(2, 6, W - 4, H - 12);
+      // 3D brick edges
+      g.fillStyle(0x000000, 0.2);
+      g.fillRect(2, H - 8, W - 4, 2); // bottom edge
+      g.fillRect(W - 4, 6, 2, H - 12);  // right edge
+      g.fillStyle(0xFFFFFF, 0.15);
+      g.fillRect(2, 6, W - 4, 2); // top highlight
+      g.fillRect(2, 6, 2, H - 12); // left highlight
+
+      // Studs on car body (2 on top)
+      g.fillStyle(CONFIG.COLORS.CAR_BODY);
+      g.fillCircle(22, 5, 4);
+      g.fillCircle(42, 5, 4);
+      g.fillStyle(0xFFFFFF, 0.25);
+      g.fillCircle(21, 4, 2);
+      g.fillCircle(41, 4, 2);
+
+      // Windshield — transparent blue Lego piece
       g.fillStyle(CONFIG.COLORS.CAR_WINDOW);
-      g.fillRect(37, 8, 10, 16);
+      g.fillRect(46, 10, 14, 20);
+      g.fillStyle(0xFFFFFF, 0.3);
+      g.fillRect(46, 10, 14, 2); // glass highlight
+      g.fillRect(46, 10, 2, 20);
+
       // Rear window
       g.fillStyle(CONFIG.COLORS.CAR_WINDOW);
-      g.fillRect(3, 10, 8, 12);
-      // Wheels
+      g.fillRect(4, 12, 10, 16);
+      g.fillStyle(0xFFFFFF, 0.2);
+      g.fillRect(4, 12, 10, 2);
+
+      // White stripe (police car detail)
+      g.fillStyle(0xFFFFFF);
+      g.fillRect(14, 6, 32, 3);
+      g.fillRect(14, H - 9, 32, 3);
+
+      // Wheels — black Lego wheel pieces
+      g.fillStyle(0x222222);
+      g.fillRect(8, 0, 14, 7);
+      g.fillRect(8, H - 7, 14, 7);
+      g.fillRect(40, 0, 14, 7);
+      g.fillRect(40, H - 7, 14, 7);
+      // Wheel hubs (gray studs)
+      g.fillStyle(0x666666);
+      g.fillCircle(15, 3, 3);
+      g.fillCircle(15, H - 4, 3);
+      g.fillCircle(47, 3, 3);
+      g.fillCircle(47, H - 4, 3);
+
+      // Siren bar — red and blue Lego studs
       g.fillStyle(0x333333);
-      g.fillRect(7, 0, 12, 5);
-      g.fillRect(7, 27, 12, 5);
-      g.fillRect(33, 0, 12, 5);
-      g.fillRect(33, 27, 12, 5);
-      // Siren
+      g.fillRect(26, 2, 16, 5);
       g.fillStyle(CONFIG.COLORS.SIREN_RED);
-      g.fillRect(21, 2, 6, 5);
+      g.fillCircle(30, 4, 4);
       g.fillStyle(CONFIG.COLORS.SIREN_BLUE);
-      g.fillRect(27, 2, 6, 5);
-      g.generateTexture('car', 50, 32);
+      g.fillCircle(38, 4, 4);
+      // Siren highlights
+      g.fillStyle(0xFFFFFF, 0.4);
+      g.fillCircle(29, 3, 2);
+      g.fillCircle(37, 3, 2);
+
+      // Headlights (front)
+      g.fillStyle(0xFFEB3B);
+      g.fillRect(W - 4, 12, 4, 5);
+      g.fillRect(W - 4, 23, 4, 5);
+
+      // Taillights (rear)
+      g.fillStyle(0xF44336);
+      g.fillRect(0, 12, 4, 5);
+      g.fillRect(0, 23, 4, 5);
+
+      g.generateTexture('car', W, H);
       g.destroy();
     }
 
     const car = this.physics.add.sprite(x, y, 'car');
     car.setCollideWorldBounds(true);
-    car.body.setSize(50, 32);
+    car.body.setSize(64, 40);
     return car;
   }
 

@@ -124,53 +124,124 @@ class TitleScene extends Phaser.Scene {
     const g = this.add.graphics();
     const s = scale || 1;
 
-    // Car body
+    // Shadow
+    g.fillStyle(0x000000, 0.15);
+    g.fillRect(x - 28 * s, y - 8 * s, 60 * s, 28 * s);
+
+    // Car body — Lego brick with 3D edges
     g.fillStyle(CONFIG.COLORS.CAR_BODY);
-    g.fillRect(x - 30 * s, y - 12 * s, 60 * s, 24 * s);
+    g.fillRect(x - 30 * s, y - 10 * s, 60 * s, 24 * s);
+    g.fillStyle(0x000000, 0.2);
+    g.fillRect(x - 30 * s, y + 12 * s, 60 * s, 2 * s);
+    g.fillRect(x + 28 * s, y - 10 * s, 2 * s, 24 * s);
+    g.fillStyle(0xFFFFFF, 0.15);
+    g.fillRect(x - 30 * s, y - 10 * s, 60 * s, 2 * s);
+    g.fillRect(x - 30 * s, y - 10 * s, 2 * s, 24 * s);
 
-    // Windshield
+    // Studs on top
+    g.fillStyle(CONFIG.COLORS.CAR_BODY);
+    g.fillCircle(x - 12 * s, y - 12 * s, 5 * s);
+    g.fillCircle(x + 12 * s, y - 12 * s, 5 * s);
+    g.fillStyle(0xFFFFFF, 0.25);
+    g.fillCircle(x - 13 * s, y - 13 * s, 2.5 * s);
+    g.fillCircle(x + 11 * s, y - 13 * s, 2.5 * s);
+
+    // White police stripe
+    g.fillStyle(0xFFFFFF);
+    g.fillRect(x - 26 * s, y - 10 * s, 52 * s, 3 * s);
+    g.fillRect(x - 26 * s, y + 10 * s, 52 * s, 3 * s);
+
+    // Windshield — transparent blue
     g.fillStyle(CONFIG.COLORS.CAR_WINDOW);
-    g.fillRect(x - 10 * s, y - 10 * s, 20 * s, 8 * s);
+    g.fillRect(x - 12 * s, y - 8 * s, 24 * s, 10 * s);
+    g.fillStyle(0xFFFFFF, 0.3);
+    g.fillRect(x - 12 * s, y - 8 * s, 24 * s, 2 * s);
 
-    // Wheels
+    // Wheels — black Lego pieces
+    g.fillStyle(0x222222);
+    g.fillRect(x - 26 * s, y + 12 * s, 16 * s, 8 * s);
+    g.fillRect(x + 10 * s, y + 12 * s, 16 * s, 8 * s);
+    g.fillStyle(0x666666);
+    g.fillCircle(x - 18 * s, y + 16 * s, 4 * s);
+    g.fillCircle(x + 18 * s, y + 16 * s, 4 * s);
+
+    // Siren — red and blue round studs
     g.fillStyle(0x333333);
-    g.fillRect(x - 26 * s, y + 10 * s, 14 * s, 8 * s);
-    g.fillRect(x + 12 * s, y + 10 * s, 14 * s, 8 * s);
-
-    // Siren
+    g.fillRect(x - 10 * s, y - 16 * s, 20 * s, 6 * s);
     g.fillStyle(CONFIG.COLORS.SIREN_RED);
-    g.fillRect(x - 8 * s, y - 18 * s, 7 * s, 6 * s);
+    g.fillCircle(x - 5 * s, y - 13 * s, 5 * s);
     g.fillStyle(CONFIG.COLORS.SIREN_BLUE);
-    g.fillRect(x + 1 * s, y - 18 * s, 7 * s, 6 * s);
+    g.fillCircle(x + 5 * s, y - 13 * s, 5 * s);
+    g.fillStyle(0xFFFFFF, 0.4);
+    g.fillCircle(x - 6 * s, y - 14 * s, 2.5 * s);
+    g.fillCircle(x + 4 * s, y - 14 * s, 2.5 * s);
+
+    // Headlights
+    g.fillStyle(0xFFEB3B);
+    g.fillRect(x + 28 * s, y - 4 * s, 4 * s, 5 * s);
+    g.fillRect(x + 28 * s, y + 3 * s, 4 * s, 5 * s);
   }
 
   drawFlower(x, y, color) {
     const g = this.add.graphics();
-    // Stem
+    // Stem — green brick
     g.fillStyle(0x388E3C);
-    g.fillRect(x - 1, y - 8, 3, 10);
-    // Petals
+    g.fillRect(x - 2, y - 8, 4, 12);
+    // Flower head — round Lego piece
     g.fillStyle(color);
-    g.fillCircle(x, y - 10, 5);
-    g.fillCircle(x - 4, y - 7, 4);
-    g.fillCircle(x + 4, y - 7, 4);
-    // Center
+    g.fillCircle(x, y - 10, 6);
+    // Stud center
     g.fillStyle(0xFFEB3B);
-    g.fillCircle(x, y - 8, 2);
+    g.fillCircle(x, y - 10, 3);
+    g.fillStyle(0xFFFFFF, 0.3);
+    g.fillCircle(x - 1, y - 11, 1.5);
   }
 
   drawTree(x, y) {
     const g = this.add.graphics();
-    // Trunk
+    // Trunk — brown Lego brick with edges
     g.fillStyle(CONFIG.COLORS.TREE_TRUNK);
     g.fillRect(x - 8, y, 16, 40);
-    // Canopy layers (blocky Lego style)
+    g.fillStyle(0x000000, 0.2);
+    g.fillRect(x - 8, y + 38, 16, 2);
+    g.fillRect(x + 6, y, 2, 40);
+    g.fillStyle(0xFFFFFF, 0.15);
+    g.fillRect(x - 8, y, 16, 2);
+    // Stud on trunk
+    g.fillStyle(CONFIG.COLORS.TREE_TRUNK);
+    g.fillCircle(x, y - 2, 4);
+    g.fillStyle(0xFFFFFF, 0.25);
+    g.fillCircle(x - 1, y - 3, 2);
+    // Canopy — stacked green Lego bricks
     g.fillStyle(CONFIG.COLORS.TREE_LEAVES);
-    g.fillRect(x - 30, y - 20, 60, 30);
+    g.fillRect(x - 30, y - 18, 60, 22);
+    g.fillStyle(0x000000, 0.15);
+    g.fillRect(x - 30, y + 2, 60, 2);
+    g.fillStyle(0xFFFFFF, 0.12);
+    g.fillRect(x - 30, y - 18, 60, 2);
+    // Studs on bottom canopy
+    for (let i = -2; i <= 2; i++) {
+      g.fillStyle(CONFIG.COLORS.TREE_LEAVES);
+      g.fillCircle(x + i * 12, y - 20, 4);
+    }
+    // Middle canopy
     g.fillStyle(CONFIG.COLORS.TREE_LEAVES_LIGHT);
-    g.fillRect(x - 22, y - 40, 44, 25);
+    g.fillRect(x - 22, y - 38, 44, 22);
+    g.fillStyle(0x000000, 0.12);
+    g.fillRect(x - 22, y - 18, 44, 2);
+    for (let i = -1; i <= 1; i++) {
+      g.fillStyle(CONFIG.COLORS.TREE_LEAVES_LIGHT);
+      g.fillCircle(x + i * 12, y - 40, 4);
+    }
+    // Top canopy
     g.fillStyle(CONFIG.COLORS.TREE_LEAVES);
-    g.fillRect(x - 14, y - 55, 28, 20);
+    g.fillRect(x - 14, y - 55, 28, 18);
+    g.fillStyle(CONFIG.COLORS.TREE_LEAVES);
+    g.fillCircle(x - 4, y - 57, 4);
+    g.fillCircle(x + 4, y - 57, 4);
+    g.fillStyle(0xFFFFFF, 0.2);
+    g.fillCircle(x - 5, y - 58, 2);
+    g.fillCircle(x + 3, y - 58, 2);
   }
 
   drawStar(x, y, size, color) {
