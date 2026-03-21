@@ -4,6 +4,7 @@ class CelebrationScene extends Phaser.Scene {
   }
 
   create() {
+    this.currentRound = (this.scene.settings.data && this.scene.settings.data.round) || 1;
     const cx = CONFIG.WIDTH / 2;
     const cy = CONFIG.HEIGHT / 2;
 
@@ -136,7 +137,7 @@ class CelebrationScene extends Phaser.Scene {
         duration: 100,
         yoyo: true,
         onComplete: () => {
-          this.scene.start('GameScene');
+          this.scene.start('VehicleRevealScene', { round: this.currentRound });
         },
       });
     };
