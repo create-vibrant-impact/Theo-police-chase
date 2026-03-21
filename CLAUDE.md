@@ -51,6 +51,8 @@ docs/
 - **Power-ups and obstacles** — Nitrous boost power-up (blue lightning bolt, 1.8x speed for 3s) appears from round 2+. Oil slicks (spin the vehicle) from round 3+. Potholes (slow the vehicle) from round 4+. All configured per-round in `CONFIG.ROUNDS[]`.
 - **Pause/resume system** — PauseScene is launched as a parallel scene over GameScene. GameScene pauses its own scene (physics, tweens, timers) and launches PauseScene as overlay. Resume stops PauseScene and resumes GameScene. Pause button is a "II" icon in the top-left HUD area.
 - **Vehicle reveal between rounds** — VehicleRevealScene shows the next vehicle with a drive-in animation between rounds. Builds anticipation for each new vehicle unlock.
+- **Smarter bad guys (zig-zag + flee)** — From round 3, bad guys change direction more frequently (zig-zag). From round 4, they also flee directly away from the player when the car gets close. Both behaviors are config-driven per round (`zigZag`, `zigZagInterval`, `fleeEnabled`, `fleeSpeed`, `fleeRange`). Flee logic runs in `update()` via `_updateBadGuyFlee()` and sets a `badGuy.fleeing` flag to prevent wander from overriding flee velocity.
+- **Wiggle & slow when carrying** — Caught bad guys wiggle (rotation tween) and slow the car down. Intensity and speed penalty scale per round (`wiggleIntensity`, `carrySpeedPenalty`). Wiggle tween is stored as `this.wiggleTween` and cleaned up on jail delivery.
 
 ## Gotchas
 
@@ -61,6 +63,7 @@ docs/
 - **Obstacles must not spawn on the player's starting position** — Early implementation spawned oil slicks/potholes at random road positions including where the vehicle starts, causing immediate spin/slow on round begin. Fix: obstacle placement must exclude a radius around the vehicle's spawn point.
 - **Oil slick spin must be a one-shot effect** — Initial implementation used a tween that could re-trigger or loop indefinitely if the player stayed on the oil slick, causing an infinite spin. Fix: use a `spinning` flag on the vehicle to prevent re-entry, and clear it with a timed callback after the spin completes.
 - **Round state must fully reset after completing all 5 rounds** — After beating round 5 and returning to play again, the round counter was not resetting to 1. The "CATCH MORE" / "PLAY AGAIN" flow from MegaCelebrationScene must explicitly pass `{ round: 1 }` to GameScene to restart from the beginning.
+- **Flee must not be overridden by wander** — When a bad guy is fleeing (car is nearby), `startWander()` must skip setting new velocity and just reschedule. The `badGuy.fleeing` flag gates this. Without it, wander timers fire during flee and reset the bad guy's escape velocity, making flee feel broken.
 
 ## Game Flow
 

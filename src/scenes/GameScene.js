@@ -10,6 +10,7 @@ class GameScene extends Phaser.Scene {
 
     // State
     this.carrying = null;       // Reference to caught bad guy
+    this.wiggleTween = null;    // Wiggle tween for carried bad guy
     this.jailedCount = 0;
     this.targetPos = null;      // Where the car is heading
     this.roundComplete = false;
@@ -115,6 +116,7 @@ class GameScene extends Phaser.Scene {
         let speed = this.roundConfig.speed;
         if (this.isBoosted) speed *= CONFIG.POWERUP_BOOST_MULTIPLIER;
         if (this.isSlowed) speed *= CONFIG.POTHOLE_SLOW_MULTIPLIER;
+        if (this.carrying) speed *= this.roundConfig.carrySpeedPenalty;
         this.physics.moveToObject(this.car, this.targetPos, speed);
 
         // Rotate car to face movement direction
@@ -137,6 +139,27 @@ class GameScene extends Phaser.Scene {
     }
 
     this._updateBadGuyBounds();
+    this._updateBadGuyFlee();
+  }
+
+  _updateBadGuyFlee() {
+    if (!this.roundConfig.fleeEnabled) return;
+
+    this.badGuys.children.iterate((badGuy) => {
+      if (!badGuy || !badGuy.active || badGuy === this.carrying) return;
+
+      const dist = Phaser.Math.Distance.Between(this.car.x, this.car.y, badGuy.x, badGuy.y);
+
+      if (dist < this.roundConfig.fleeRange) {
+        // Run directly away from the car
+        const angle = Phaser.Math.Angle.Between(this.car.x, this.car.y, badGuy.x, badGuy.y);
+        const fleeSpeed = this.roundConfig.badGuySpeed * this.roundConfig.fleeSpeed;
+        badGuy.body.setVelocity(Math.cos(angle) * fleeSpeed, Math.sin(angle) * fleeSpeed);
+        badGuy.fleeing = true;
+      } else {
+        badGuy.fleeing = false;
+      }
+    });
   }
 
   _updateBadGuyBounds() {
@@ -809,11 +832,31 @@ class GameScene extends Phaser.Scene {
   startWander(badGuy) {
     if (!badGuy || !badGuy.active) return;
 
-    const vx = Phaser.Math.Between(-1, 1) * this.roundConfig.badGuySpeed;
-    const vy = Phaser.Math.Between(-1, 1) * this.roundConfig.badGuySpeed;
-    badGuy.body.setVelocity(vx, vy);
+    // If fleeing, don't override with wander — just schedule next check
+    if (badGuy.fleeing) {
+      const interval = this.roundConfig.zigZag ? this.roundConfig.zigZagInterval : CONFIG.BAD_GUY_WANDER_TIME;
+      this.time.delayedCall(interval, () => {
+        if (badGuy && badGuy.active && badGuy !== this.carrying) {
+          this.startWander(badGuy);
+        }
+      });
+      return;
+    }
 
-    this.time.delayedCall(CONFIG.BAD_GUY_WANDER_TIME, () => {
+    if (this.roundConfig.zigZag) {
+      // Zig-zag: pick a random angle and always move at full speed
+      const angle = Phaser.Math.FloatBetween(0, Math.PI * 2);
+      const speed = this.roundConfig.badGuySpeed;
+      badGuy.body.setVelocity(Math.cos(angle) * speed, Math.sin(angle) * speed);
+    } else {
+      // Original wander: random direction with possible stops
+      const vx = Phaser.Math.Between(-1, 1) * this.roundConfig.badGuySpeed;
+      const vy = Phaser.Math.Between(-1, 1) * this.roundConfig.badGuySpeed;
+      badGuy.body.setVelocity(vx, vy);
+    }
+
+    const interval = this.roundConfig.zigZag ? this.roundConfig.zigZagInterval : CONFIG.BAD_GUY_WANDER_TIME;
+    this.time.delayedCall(interval, () => {
       if (badGuy && badGuy.active && badGuy !== this.carrying) {
         this.startWander(badGuy);
       }
@@ -828,6 +871,7 @@ class GameScene extends Phaser.Scene {
     this.carrying = badGuy;
     badGuy.body.setVelocity(0, 0);
     badGuy.body.enable = false;
+    badGuy.fleeing = false;
 
     // Snap animation
     this.tweens.add({
@@ -837,6 +881,20 @@ class GameScene extends Phaser.Scene {
       duration: 150,
       ease: 'Back.easeOut',
     });
+
+    // Wiggle tween — bad guy struggles while being carried
+    if (this.roundConfig.wiggleIntensity > 0) {
+      const deg = this.roundConfig.wiggleIntensity;
+      const rad = Phaser.Math.DegToRad(deg);
+      this.wiggleTween = this.tweens.add({
+        targets: badGuy,
+        angle: { from: -deg, to: deg },
+        duration: 150 + (35 - deg) * 4, // faster wiggle at higher intensity
+        yoyo: true,
+        repeat: -1,
+        ease: 'Sine.easeInOut',
+      });
+    }
 
     // Flash effect + catch sound
     this.cameras.main.flash(200, 255, 255, 255, false, null, this);
@@ -848,6 +906,12 @@ class GameScene extends Phaser.Scene {
 
     const badGuy = this.carrying;
     this.carrying = null;
+
+    // Stop wiggle tween
+    if (this.wiggleTween) {
+      this.wiggleTween.stop();
+      this.wiggleTween = null;
+    }
 
     // Animate bad guy into jail
     this.tweens.add({

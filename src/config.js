@@ -54,11 +54,16 @@ const CONFIG = {
 
   // Round progression
   ROUNDS: [
-    { round: 1, vehicle: 'car',         vehicleName: 'POLICE CAR',   vehicleW: 64, vehicleH: 40, speed: 200, badGuyCount: 3, badGuySpeed: 40, powerUps: false, obstacles: [] },
-    { round: 2, vehicle: 'suv',         vehicleName: 'POLICE SUV',   vehicleW: 70, vehicleH: 46, speed: 190, badGuyCount: 4, badGuySpeed: 50, powerUps: true,  obstacles: [] },
-    { round: 3, vehicle: 'jeep',        vehicleName: 'POLICE JEEP',  vehicleW: 64, vehicleH: 42, speed: 200, badGuyCount: 4, badGuySpeed: 55, powerUps: true,  obstacles: ['oilslick'] },
-    { round: 4, vehicle: 'motorcycle',  vehicleName: 'MOTORCYCLE',   vehicleW: 55, vehicleH: 32, speed: 240, badGuyCount: 5, badGuySpeed: 60, powerUps: true,  obstacles: ['oilslick', 'pothole'] },
-    { round: 5, vehicle: 'monstertruck', vehicleName: 'MONSTER JAM', vehicleW: 96, vehicleH: 64, speed: 180, badGuyCount: 5, badGuySpeed: 65, powerUps: true,  obstacles: ['oilslick', 'pothole'] },
+    { round: 1, vehicle: 'car',         vehicleName: 'POLICE CAR',   vehicleW: 64, vehicleH: 40, speed: 200, badGuyCount: 3, badGuySpeed: 40, powerUps: false, obstacles: [],
+      zigZag: false, zigZagInterval: 2000, fleeEnabled: false, fleeSpeed: 1, fleeRange: 0, wiggleIntensity: 0, carrySpeedPenalty: 1.0 },
+    { round: 2, vehicle: 'suv',         vehicleName: 'POLICE SUV',   vehicleW: 70, vehicleH: 46, speed: 190, badGuyCount: 4, badGuySpeed: 50, powerUps: true,  obstacles: [],
+      zigZag: false, zigZagInterval: 2000, fleeEnabled: false, fleeSpeed: 1, fleeRange: 0, wiggleIntensity: 8, carrySpeedPenalty: 0.9 },
+    { round: 3, vehicle: 'jeep',        vehicleName: 'POLICE JEEP',  vehicleW: 64, vehicleH: 42, speed: 200, badGuyCount: 4, badGuySpeed: 55, powerUps: true,  obstacles: ['oilslick'],
+      zigZag: true, zigZagInterval: 800, fleeEnabled: false, fleeSpeed: 1, fleeRange: 0, wiggleIntensity: 15, carrySpeedPenalty: 0.85 },
+    { round: 4, vehicle: 'motorcycle',  vehicleName: 'MOTORCYCLE',   vehicleW: 55, vehicleH: 32, speed: 240, badGuyCount: 5, badGuySpeed: 60, powerUps: true,  obstacles: ['oilslick', 'pothole'],
+      zigZag: true, zigZagInterval: 600, fleeEnabled: true, fleeSpeed: 1.5, fleeRange: 150, wiggleIntensity: 25, carrySpeedPenalty: 0.8 },
+    { round: 5, vehicle: 'monstertruck', vehicleName: 'MONSTER JAM', vehicleW: 96, vehicleH: 64, speed: 180, badGuyCount: 5, badGuySpeed: 65, powerUps: true,  obstacles: ['oilslick', 'pothole'],
+      zigZag: true, zigZagInterval: 400, fleeEnabled: true, fleeSpeed: 1.8, fleeRange: 200, wiggleIntensity: 35, carrySpeedPenalty: 0.75 },
   ],
 
   // Power-up constants
