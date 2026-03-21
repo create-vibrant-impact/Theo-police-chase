@@ -51,4 +51,27 @@ const CONFIG = {
   HUD_Y: 20,
   HUD_ICON_SIZE: 30,
   HUD_ICON_SPACING: 40,
+
+  // Round progression
+  ROUNDS: [
+    { round: 1, vehicle: 'car',         vehicleName: 'POLICE CAR',   vehicleW: 64, vehicleH: 40, speed: 200, badGuyCount: 3, badGuySpeed: 40, powerUps: false, obstacles: [] },
+    { round: 2, vehicle: 'suv',         vehicleName: 'POLICE SUV',   vehicleW: 70, vehicleH: 46, speed: 190, badGuyCount: 4, badGuySpeed: 50, powerUps: true,  obstacles: [] },
+    { round: 3, vehicle: 'jeep',        vehicleName: 'POLICE JEEP',  vehicleW: 64, vehicleH: 42, speed: 200, badGuyCount: 4, badGuySpeed: 55, powerUps: true,  obstacles: ['oilslick'] },
+    { round: 4, vehicle: 'motorcycle',  vehicleName: 'MOTORCYCLE',   vehicleW: 55, vehicleH: 32, speed: 240, badGuyCount: 5, badGuySpeed: 60, powerUps: true,  obstacles: ['oilslick', 'pothole'] },
+    { round: 5, vehicle: 'monstertruck', vehicleName: 'MONSTER JAM', vehicleW: 80, vehicleH: 50, speed: 180, badGuyCount: 5, badGuySpeed: 65, powerUps: true,  obstacles: ['oilslick', 'pothole'] },
+  ],
+
+  // Power-up constants
+  POWERUP_BOOST_MULTIPLIER: 1.8,
+  POWERUP_BOOST_DURATION: 3000,
+  POWERUP_RESPAWN_DELAY: 8000,
+
+  // Obstacle constants
+  OIL_SLICK_SPIN_DURATION: 500,
+  OIL_SLICK_COAST_DURATION: 1000,
+  POTHOLE_SLOW_MULTIPLIER: 0.6,
+  POTHOLE_SLOW_DURATION: 4000,
+
+  // Power-up road spawn rule
+  POWERUP_ON_ROADS_FROM_ROUND: 4,
 };
