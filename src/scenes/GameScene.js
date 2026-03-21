@@ -138,23 +138,32 @@ class GameScene extends Phaser.Scene {
       this.carrying.setRotation(this.car.rotation);
     }
 
-    this._updateBadGuyBounds();
     this._updateBadGuyFlee();
+    this._updateBadGuyBounds();
   }
 
   _updateBadGuyFlee() {
     if (!this.roundConfig.fleeEnabled) return;
 
+    const margin = 50;
     this.badGuys.children.iterate((badGuy) => {
       if (!badGuy || !badGuy.active || badGuy === this.carrying) return;
 
       const dist = Phaser.Math.Distance.Between(this.car.x, this.car.y, badGuy.x, badGuy.y);
 
       if (dist < this.roundConfig.fleeRange) {
-        // Run directly away from the car
         const angle = Phaser.Math.Angle.Between(this.car.x, this.car.y, badGuy.x, badGuy.y);
         const fleeSpeed = this.roundConfig.badGuySpeed * this.roundConfig.fleeSpeed;
-        badGuy.body.setVelocity(Math.cos(angle) * fleeSpeed, Math.sin(angle) * fleeSpeed);
+        let vx = Math.cos(angle) * fleeSpeed;
+        let vy = Math.sin(angle) * fleeSpeed;
+
+        // Don't flee toward edges — clamp velocity components near boundaries
+        if (badGuy.x < margin && vx < 0) vx = Math.abs(vx);
+        if (badGuy.x > CONFIG.WIDTH - margin && vx > 0) vx = -Math.abs(vx);
+        if (badGuy.y < margin && vy < 0) vy = Math.abs(vy);
+        if (badGuy.y > CONFIG.HEIGHT - margin && vy > 0) vy = -Math.abs(vy);
+
+        badGuy.body.setVelocity(vx, vy);
         badGuy.fleeing = true;
       } else {
         badGuy.fleeing = false;
