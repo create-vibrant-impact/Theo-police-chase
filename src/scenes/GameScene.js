@@ -4,10 +4,15 @@ class GameScene extends Phaser.Scene {
   }
 
   create() {
+    // Round config
+    this.currentRound = (this.scene.settings.data && this.scene.settings.data.round) || 1;
+    this.roundConfig = CONFIG.ROUNDS[this.currentRound - 1];
+
     // State
     this.carrying = null;       // Reference to caught bad guy
     this.jailedCount = 0;
     this.targetPos = null;      // Where the car is heading
+    this.roundComplete = false;
 
     // --- ENVIRONMENT ---
     this.drawEnvironment();
@@ -21,8 +26,10 @@ class GameScene extends Phaser.Scene {
     this.physics.add.existing(this.jail, true); // static body
     this.drawJailDetail();
 
-    // --- POLICE CAR ---
-    this.car = this.createCar(150, CONFIG.HEIGHT / 2);
+    // --- VEHICLE ---
+    this.vehicleType = this.roundConfig.vehicle;
+    this.car = this.createVehicle(this.roundConfig.vehicle, 150, CONFIG.HEIGHT / 2);
+    this.car.body.setSize(this.roundConfig.vehicleW, this.roundConfig.vehicleH);
 
     // --- BAD GUYS ---
     this.badGuys = this.physics.add.group();
@@ -72,7 +79,7 @@ class GameScene extends Phaser.Scene {
       );
 
       if (dist > CONFIG.CAR_STOP_DISTANCE) {
-        this.physics.moveToObject(this.car, this.targetPos, CONFIG.CAR_SPEED);
+        this.physics.moveToObject(this.car, this.targetPos, this.roundConfig.speed);
 
         // Rotate car to face movement direction
         const angle = Phaser.Math.Angle.Between(
@@ -97,10 +104,10 @@ class GameScene extends Phaser.Scene {
     this.badGuys.children.iterate((badGuy) => {
       if (!badGuy || !badGuy.active || badGuy === this.carrying) return;
       // Keep in bounds
-      if (badGuy.x < 30) badGuy.body.setVelocityX(CONFIG.BAD_GUY_SPEED);
-      if (badGuy.x > CONFIG.WIDTH - 30) badGuy.body.setVelocityX(-CONFIG.BAD_GUY_SPEED);
-      if (badGuy.y < 30) badGuy.body.setVelocityY(CONFIG.BAD_GUY_SPEED);
-      if (badGuy.y > CONFIG.HEIGHT - 30) badGuy.body.setVelocityY(-CONFIG.BAD_GUY_SPEED);
+      if (badGuy.x < 30) badGuy.body.setVelocityX(this.roundConfig.badGuySpeed);
+      if (badGuy.x > CONFIG.WIDTH - 30) badGuy.body.setVelocityX(-this.roundConfig.badGuySpeed);
+      if (badGuy.y < 30) badGuy.body.setVelocityY(this.roundConfig.badGuySpeed);
+      if (badGuy.y > CONFIG.HEIGHT - 30) badGuy.body.setVelocityY(-this.roundConfig.badGuySpeed);
     });
   }
 
@@ -282,99 +289,378 @@ class GameScene extends Phaser.Scene {
     }).setOrigin(0.5);
   }
 
-  // --- CAR ---
+  // --- VEHICLES ---
 
-  createCar(x, y) {
-    // Only generate texture once (survives scene restart)
-    if (!this.textures.exists('car')) {
-      const W = 64;
-      const H = 40;
+  createVehicle(type, x, y) {
+    if (!this.textures.exists(type)) {
+      const rc = CONFIG.ROUNDS.find(r => r.vehicle === type);
+      const W = rc.vehicleW;
+      const H = rc.vehicleH;
       const g = this.add.graphics();
 
-      // Shadow
-      g.fillStyle(0x000000, 0.15);
-      g.fillRect(4, 8, W - 4, H - 8);
+      if (type === 'car') {
+        this._drawCarTexture(g, W, H);
+      } else if (type === 'suv') {
+        this._drawSuvTexture(g, W, H);
+      } else if (type === 'jeep') {
+        this._drawJeepTexture(g, W, H);
+      } else if (type === 'motorcycle') {
+        this._drawMotorcycleTexture(g, W, H);
+      } else if (type === 'monstertruck') {
+        this._drawMonsterTruckTexture(g, W, H);
+      }
 
-      // Car body — main Lego brick
-      g.fillStyle(CONFIG.COLORS.CAR_BODY);
-      g.fillRect(2, 6, W - 4, H - 12);
-      // 3D brick edges
-      g.fillStyle(0x000000, 0.2);
-      g.fillRect(2, H - 8, W - 4, 2); // bottom edge
-      g.fillRect(W - 4, 6, 2, H - 12);  // right edge
-      g.fillStyle(0xFFFFFF, 0.15);
-      g.fillRect(2, 6, W - 4, 2); // top highlight
-      g.fillRect(2, 6, 2, H - 12); // left highlight
-
-      // Studs on car body (2 on top)
-      g.fillStyle(CONFIG.COLORS.CAR_BODY);
-      g.fillCircle(22, 5, 4);
-      g.fillCircle(42, 5, 4);
-      g.fillStyle(0xFFFFFF, 0.25);
-      g.fillCircle(21, 4, 2);
-      g.fillCircle(41, 4, 2);
-
-      // Windshield — transparent blue Lego piece
-      g.fillStyle(CONFIG.COLORS.CAR_WINDOW);
-      g.fillRect(46, 10, 14, 20);
-      g.fillStyle(0xFFFFFF, 0.3);
-      g.fillRect(46, 10, 14, 2); // glass highlight
-      g.fillRect(46, 10, 2, 20);
-
-      // Rear window
-      g.fillStyle(CONFIG.COLORS.CAR_WINDOW);
-      g.fillRect(4, 12, 10, 16);
-      g.fillStyle(0xFFFFFF, 0.2);
-      g.fillRect(4, 12, 10, 2);
-
-      // White stripe (police car detail)
-      g.fillStyle(0xFFFFFF);
-      g.fillRect(14, 6, 32, 3);
-      g.fillRect(14, H - 9, 32, 3);
-
-      // Wheels — black Lego wheel pieces
-      g.fillStyle(0x222222);
-      g.fillRect(8, 0, 14, 7);
-      g.fillRect(8, H - 7, 14, 7);
-      g.fillRect(40, 0, 14, 7);
-      g.fillRect(40, H - 7, 14, 7);
-      // Wheel hubs (gray studs)
-      g.fillStyle(0x666666);
-      g.fillCircle(15, 3, 3);
-      g.fillCircle(15, H - 4, 3);
-      g.fillCircle(47, 3, 3);
-      g.fillCircle(47, H - 4, 3);
-
-      // Siren bar — red and blue Lego studs
-      g.fillStyle(0x333333);
-      g.fillRect(26, 2, 16, 5);
-      g.fillStyle(CONFIG.COLORS.SIREN_RED);
-      g.fillCircle(30, 4, 4);
-      g.fillStyle(CONFIG.COLORS.SIREN_BLUE);
-      g.fillCircle(38, 4, 4);
-      // Siren highlights
-      g.fillStyle(0xFFFFFF, 0.4);
-      g.fillCircle(29, 3, 2);
-      g.fillCircle(37, 3, 2);
-
-      // Headlights (front)
-      g.fillStyle(0xFFEB3B);
-      g.fillRect(W - 4, 12, 4, 5);
-      g.fillRect(W - 4, 23, 4, 5);
-
-      // Taillights (rear)
-      g.fillStyle(0xF44336);
-      g.fillRect(0, 12, 4, 5);
-      g.fillRect(0, 23, 4, 5);
-
-      g.generateTexture('car', W, H);
+      g.generateTexture(type, W, H);
       g.destroy();
     }
 
-    const car = this.physics.add.sprite(x, y, 'car');
-    car.setCollideWorldBounds(true);
-    car.body.setSize(64, 40);
-    return car;
+    const vehicle = this.physics.add.sprite(x, y, type);
+    vehicle.setCollideWorldBounds(true);
+    return vehicle;
+  }
+
+  _drawCarTexture(g, W, H) {
+    // Shadow
+    g.fillStyle(0x000000, 0.15);
+    g.fillRect(4, 8, W - 4, H - 8);
+    // Car body
+    g.fillStyle(CONFIG.COLORS.CAR_BODY);
+    g.fillRect(2, 6, W - 4, H - 12);
+    // 3D brick edges
+    g.fillStyle(0x000000, 0.2);
+    g.fillRect(2, H - 8, W - 4, 2);
+    g.fillRect(W - 4, 6, 2, H - 12);
+    g.fillStyle(0xFFFFFF, 0.15);
+    g.fillRect(2, 6, W - 4, 2);
+    g.fillRect(2, 6, 2, H - 12);
+    // Studs
+    g.fillStyle(CONFIG.COLORS.CAR_BODY);
+    g.fillCircle(22, 5, 4);
+    g.fillCircle(42, 5, 4);
+    g.fillStyle(0xFFFFFF, 0.25);
+    g.fillCircle(21, 4, 2);
+    g.fillCircle(41, 4, 2);
+    // Windshield
+    g.fillStyle(CONFIG.COLORS.CAR_WINDOW);
+    g.fillRect(46, 10, 14, 20);
+    g.fillStyle(0xFFFFFF, 0.3);
+    g.fillRect(46, 10, 14, 2);
+    g.fillRect(46, 10, 2, 20);
+    // Rear window
+    g.fillStyle(CONFIG.COLORS.CAR_WINDOW);
+    g.fillRect(4, 12, 10, 16);
+    g.fillStyle(0xFFFFFF, 0.2);
+    g.fillRect(4, 12, 10, 2);
+    // White stripe
+    g.fillStyle(0xFFFFFF);
+    g.fillRect(14, 6, 32, 3);
+    g.fillRect(14, H - 9, 32, 3);
+    // Wheels
+    g.fillStyle(0x222222);
+    g.fillRect(8, 0, 14, 7);
+    g.fillRect(8, H - 7, 14, 7);
+    g.fillRect(40, 0, 14, 7);
+    g.fillRect(40, H - 7, 14, 7);
+    g.fillStyle(0x666666);
+    g.fillCircle(15, 3, 3);
+    g.fillCircle(15, H - 4, 3);
+    g.fillCircle(47, 3, 3);
+    g.fillCircle(47, H - 4, 3);
+    // Siren bar
+    g.fillStyle(0x333333);
+    g.fillRect(26, 2, 16, 5);
+    g.fillStyle(CONFIG.COLORS.SIREN_RED);
+    g.fillCircle(30, 4, 4);
+    g.fillStyle(CONFIG.COLORS.SIREN_BLUE);
+    g.fillCircle(38, 4, 4);
+    g.fillStyle(0xFFFFFF, 0.4);
+    g.fillCircle(29, 3, 2);
+    g.fillCircle(37, 3, 2);
+    // Headlights
+    g.fillStyle(0xFFEB3B);
+    g.fillRect(W - 4, 12, 4, 5);
+    g.fillRect(W - 4, 23, 4, 5);
+    // Taillights
+    g.fillStyle(0xF44336);
+    g.fillRect(0, 12, 4, 5);
+    g.fillRect(0, 23, 4, 5);
+  }
+
+  _drawSuvTexture(g, W, H) {
+    const bodyColor = 0x0D47A1;
+    // Shadow
+    g.fillStyle(0x000000, 0.15);
+    g.fillRect(4, 10, W - 4, H - 10);
+    // Body — taller than car
+    g.fillStyle(bodyColor);
+    g.fillRect(2, 8, W - 4, H - 16);
+    // 3D edges
+    g.fillStyle(0x000000, 0.2);
+    g.fillRect(2, H - 10, W - 4, 2);
+    g.fillRect(W - 4, 8, 2, H - 16);
+    g.fillStyle(0xFFFFFF, 0.15);
+    g.fillRect(2, 8, W - 4, 2);
+    g.fillRect(2, 8, 2, H - 16);
+    // Roof rack — gray bar on top with studs
+    g.fillStyle(0x888888);
+    g.fillRect(14, 4, 42, 5);
+    g.fillStyle(0xAAAAAA);
+    g.fillCircle(22, 3, 3);
+    g.fillCircle(35, 3, 3);
+    g.fillCircle(48, 3, 3);
+    g.fillStyle(0xFFFFFF, 0.3);
+    g.fillCircle(21, 2, 1.5);
+    g.fillCircle(34, 2, 1.5);
+    g.fillCircle(47, 2, 1.5);
+    // White POLICE stripe
+    g.fillStyle(0xFFFFFF);
+    g.fillRect(14, 8, 40, 3);
+    g.fillRect(14, H - 11, 40, 3);
+    // Windshield
+    g.fillStyle(CONFIG.COLORS.CAR_WINDOW);
+    g.fillRect(50, 12, 16, 22);
+    g.fillStyle(0xFFFFFF, 0.3);
+    g.fillRect(50, 12, 16, 2);
+    g.fillRect(50, 12, 2, 22);
+    // Rear window
+    g.fillStyle(CONFIG.COLORS.CAR_WINDOW);
+    g.fillRect(4, 14, 12, 18);
+    g.fillStyle(0xFFFFFF, 0.2);
+    g.fillRect(4, 14, 12, 2);
+    // Wheels — wider
+    g.fillStyle(0x222222);
+    g.fillRect(8, 0, 16, 9);
+    g.fillRect(8, H - 9, 16, 9);
+    g.fillRect(44, 0, 16, 9);
+    g.fillRect(44, H - 9, 16, 9);
+    g.fillStyle(0x666666);
+    g.fillCircle(16, 4, 4);
+    g.fillCircle(16, H - 5, 4);
+    g.fillCircle(52, 4, 4);
+    g.fillCircle(52, H - 5, 4);
+    // Siren bar
+    g.fillStyle(0x333333);
+    g.fillRect(28, 4, 16, 5);
+    g.fillStyle(CONFIG.COLORS.SIREN_RED);
+    g.fillCircle(32, 6, 4);
+    g.fillStyle(CONFIG.COLORS.SIREN_BLUE);
+    g.fillCircle(40, 6, 4);
+    g.fillStyle(0xFFFFFF, 0.4);
+    g.fillCircle(31, 5, 2);
+    g.fillCircle(39, 5, 2);
+    // Headlights
+    g.fillStyle(0xFFEB3B);
+    g.fillRect(W - 4, 14, 4, 6);
+    g.fillRect(W - 4, 26, 4, 6);
+    // Taillights
+    g.fillStyle(0xF44336);
+    g.fillRect(0, 14, 4, 6);
+    g.fillRect(0, 26, 4, 6);
+  }
+
+  _drawJeepTexture(g, W, H) {
+    const bodyColor = 0x33691E;
+    const accentColor = 0x1565C0;
+    // Shadow
+    g.fillStyle(0x000000, 0.15);
+    g.fillRect(4, 8, W - 4, H - 8);
+    // Body — olive green
+    g.fillStyle(bodyColor);
+    g.fillRect(2, 7, W - 4, H - 14);
+    // 3D edges
+    g.fillStyle(0x000000, 0.2);
+    g.fillRect(2, H - 9, W - 4, 2);
+    g.fillRect(W - 4, 7, 2, H - 14);
+    g.fillStyle(0xFFFFFF, 0.15);
+    g.fillRect(2, 7, W - 4, 2);
+    g.fillRect(2, 7, 2, H - 14);
+    // Blue accent stripe
+    g.fillStyle(accentColor);
+    g.fillRect(14, 7, 36, 3);
+    g.fillRect(14, H - 10, 36, 3);
+    // Roll bar (open-top) — thin gray bar
+    g.fillStyle(0x888888);
+    g.fillRect(12, 3, 40, 4);
+    g.fillRect(12, 3, 3, H - 8);
+    g.fillRect(49, 3, 3, H - 8);
+    // Studs on roll bar
+    g.fillStyle(0xAAAAAA);
+    g.fillCircle(24, 2, 3);
+    g.fillCircle(40, 2, 3);
+    g.fillStyle(0xFFFFFF, 0.25);
+    g.fillCircle(23, 1, 1.5);
+    g.fillCircle(39, 1, 1.5);
+    // Windshield (shorter, open-top)
+    g.fillStyle(CONFIG.COLORS.CAR_WINDOW);
+    g.fillRect(46, 10, 12, 22);
+    g.fillStyle(0xFFFFFF, 0.3);
+    g.fillRect(46, 10, 12, 2);
+    // Wider wheel arches
+    g.fillStyle(0x222222);
+    g.fillRect(6, 0, 16, 8);
+    g.fillRect(6, H - 8, 16, 8);
+    g.fillRect(42, 0, 16, 8);
+    g.fillRect(42, H - 8, 16, 8);
+    g.fillStyle(0x666666);
+    g.fillCircle(14, 4, 4);
+    g.fillCircle(14, H - 4, 4);
+    g.fillCircle(50, 4, 4);
+    g.fillCircle(50, H - 4, 4);
+    // Siren on roll bar
+    g.fillStyle(0x333333);
+    g.fillRect(28, 0, 14, 4);
+    g.fillStyle(CONFIG.COLORS.SIREN_RED);
+    g.fillCircle(31, 2, 3);
+    g.fillStyle(CONFIG.COLORS.SIREN_BLUE);
+    g.fillCircle(39, 2, 3);
+    g.fillStyle(0xFFFFFF, 0.4);
+    g.fillCircle(30, 1, 1.5);
+    g.fillCircle(38, 1, 1.5);
+    // Headlights
+    g.fillStyle(0xFFEB3B);
+    g.fillRect(W - 4, 12, 4, 5);
+    g.fillRect(W - 4, 25, 4, 5);
+    // Taillights
+    g.fillStyle(0xF44336);
+    g.fillRect(0, 12, 4, 5);
+    g.fillRect(0, 25, 4, 5);
+  }
+
+  _drawMotorcycleTexture(g, W, H) {
+    const bodyColor = 0x1565C0;
+    // Shadow
+    g.fillStyle(0x000000, 0.15);
+    g.fillRect(4, 6, W - 8, H - 6);
+    // Narrow body
+    g.fillStyle(bodyColor);
+    g.fillRect(12, 8, 30, H - 16);
+    // 3D edges
+    g.fillStyle(0x000000, 0.2);
+    g.fillRect(12, H - 10, 30, 2);
+    g.fillRect(40, 8, 2, H - 16);
+    g.fillStyle(0xFFFFFF, 0.15);
+    g.fillRect(12, 8, 30, 2);
+    g.fillRect(12, 8, 2, H - 16);
+    // Sidecar (right side)
+    g.fillStyle(bodyColor);
+    g.fillRect(18, H - 12, 20, 10);
+    g.fillStyle(0x000000, 0.15);
+    g.fillRect(18, H - 4, 20, 2);
+    g.fillRect(36, H - 12, 2, 10);
+    g.fillStyle(0xFFFFFF, 0.1);
+    g.fillRect(18, H - 12, 20, 2);
+    // Large wheels
+    g.fillStyle(0x222222);
+    g.fillRect(2, 10, 12, 12);
+    g.fillRect(40, 10, 12, 12);
+    g.fillStyle(0x666666);
+    g.fillCircle(8, 16, 4);
+    g.fillCircle(46, 16, 4);
+    // Sidecar wheel
+    g.fillStyle(0x222222);
+    g.fillRect(24, H - 6, 10, 6);
+    g.fillStyle(0x666666);
+    g.fillCircle(29, H - 3, 3);
+    // Handlebars — thin gray bar at front
+    g.fillStyle(0x888888);
+    g.fillRect(44, 6, 8, 3);
+    g.fillRect(44, H - 9, 8, 3);
+    // Windshield (small)
+    g.fillStyle(CONFIG.COLORS.CAR_WINDOW);
+    g.fillRect(42, 12, 6, 8);
+    g.fillStyle(0xFFFFFF, 0.3);
+    g.fillRect(42, 12, 6, 2);
+    // Single red siren light on top
+    g.fillStyle(CONFIG.COLORS.SIREN_RED);
+    g.fillCircle(27, 7, 4);
+    g.fillStyle(0xFFFFFF, 0.4);
+    g.fillCircle(26, 6, 2);
+    // Headlight
+    g.fillStyle(0xFFEB3B);
+    g.fillRect(W - 4, 14, 4, 4);
+    // Taillight
+    g.fillStyle(0xF44336);
+    g.fillRect(0, 14, 4, 4);
+  }
+
+  _drawMonsterTruckTexture(g, W, H) {
+    const bodyColor = 0x212121;
+    const accentColor = 0xFFD600;
+    // Shadow
+    g.fillStyle(0x000000, 0.15);
+    g.fillRect(6, 12, W - 6, H - 12);
+    // Raised body (sits higher)
+    g.fillStyle(bodyColor);
+    g.fillRect(4, 10, W - 8, H - 22);
+    // 3D edges
+    g.fillStyle(0x000000, 0.25);
+    g.fillRect(4, H - 14, W - 8, 2);
+    g.fillRect(W - 6, 10, 2, H - 22);
+    g.fillStyle(0xFFFFFF, 0.12);
+    g.fillRect(4, 10, W - 8, 2);
+    g.fillRect(4, 10, 2, H - 22);
+    // Yellow accent stripe
+    g.fillStyle(accentColor);
+    g.fillRect(14, 10, 50, 4);
+    g.fillRect(14, H - 16, 50, 4);
+    // "MJ" text area
+    g.fillStyle(accentColor);
+    g.fillRect(28, 18, 14, 10);
+    g.fillStyle(bodyColor);
+    g.fillRect(30, 20, 10, 6);
+    // Studs on top (chunky)
+    g.fillStyle(bodyColor);
+    g.fillCircle(20, 8, 4);
+    g.fillCircle(40, 8, 4);
+    g.fillCircle(60, 8, 4);
+    g.fillStyle(0xFFFFFF, 0.2);
+    g.fillCircle(19, 7, 2);
+    g.fillCircle(39, 7, 2);
+    g.fillCircle(59, 7, 2);
+    // Windshield
+    g.fillStyle(CONFIG.COLORS.CAR_WINDOW);
+    g.fillRect(58, 14, 16, 20);
+    g.fillStyle(0xFFFFFF, 0.3);
+    g.fillRect(58, 14, 16, 2);
+    g.fillRect(58, 14, 2, 20);
+    // OVERSIZED wheels (bigger, treaded)
+    g.fillStyle(0x111111);
+    g.fillRect(6, 0, 20, 12);
+    g.fillRect(6, H - 12, 20, 12);
+    g.fillRect(54, 0, 20, 12);
+    g.fillRect(54, H - 12, 20, 12);
+    // Tread marks on wheels
+    g.fillStyle(0x333333);
+    for (let t = 0; t < 4; t++) {
+      g.fillRect(8 + t * 5, 1, 2, 10);
+      g.fillRect(8 + t * 5, H - 11, 2, 10);
+      g.fillRect(56 + t * 5, 1, 2, 10);
+      g.fillRect(56 + t * 5, H - 11, 2, 10);
+    }
+    // Wheel hubs (bigger)
+    g.fillStyle(0x888888);
+    g.fillCircle(16, 6, 5);
+    g.fillCircle(16, H - 6, 5);
+    g.fillCircle(64, 6, 5);
+    g.fillCircle(64, H - 6, 5);
+    // Wide siren bar
+    g.fillStyle(0x333333);
+    g.fillRect(22, 6, 24, 5);
+    g.fillStyle(CONFIG.COLORS.SIREN_RED);
+    g.fillCircle(28, 8, 4);
+    g.fillStyle(CONFIG.COLORS.SIREN_BLUE);
+    g.fillCircle(40, 8, 4);
+    g.fillStyle(0xFFFFFF, 0.4);
+    g.fillCircle(27, 7, 2);
+    g.fillCircle(39, 7, 2);
+    // Headlights (big)
+    g.fillStyle(0xFFEB3B);
+    g.fillRect(W - 6, 16, 6, 7);
+    g.fillRect(W - 6, 27, 6, 7);
+    // Taillights
+    g.fillStyle(0xF44336);
+    g.fillRect(0, 16, 6, 7);
+    g.fillRect(0, 27, 6, 7);
   }
 
   toggleSiren() {
@@ -399,7 +685,7 @@ class GameScene extends Phaser.Scene {
       { x: CONFIG.JAIL_X, y: CONFIG.JAIL_Y },
     ];
 
-    for (let i = 0; i < CONFIG.BAD_GUY_COUNT; i++) {
+    for (let i = 0; i < this.roundConfig.badGuyCount; i++) {
       let bx, by, tooClose;
       do {
         bx = Phaser.Math.Between(80, CONFIG.WIDTH - 80);
@@ -454,8 +740,8 @@ class GameScene extends Phaser.Scene {
   startWander(badGuy) {
     if (!badGuy || !badGuy.active) return;
 
-    const vx = Phaser.Math.Between(-1, 1) * CONFIG.BAD_GUY_SPEED;
-    const vy = Phaser.Math.Between(-1, 1) * CONFIG.BAD_GUY_SPEED;
+    const vx = Phaser.Math.Between(-1, 1) * this.roundConfig.badGuySpeed;
+    const vy = Phaser.Math.Between(-1, 1) * this.roundConfig.badGuySpeed;
     badGuy.body.setVelocity(vx, vy);
 
     this.time.delayedCall(CONFIG.BAD_GUY_WANDER_TIME, () => {
@@ -524,7 +810,7 @@ class GameScene extends Phaser.Scene {
     this.cameras.main.shake(200, 0.008);
 
     // Check win
-    if (this.jailedCount >= CONFIG.BAD_GUY_COUNT) {
+    if (this.jailedCount >= this.roundConfig.badGuyCount) {
       SoundManager.stopSiren();
       this.time.delayedCall(600, () => {
         this.scene.start('CelebrationScene');
@@ -537,18 +823,18 @@ class GameScene extends Phaser.Scene {
   drawHUD() {
     const hudY = 35;
     const iconSpacing = 55;
-    const startX = CONFIG.WIDTH / 2 - ((CONFIG.BAD_GUY_COUNT - 1) * iconSpacing) / 2;
+    const startX = CONFIG.WIDTH / 2 - ((this.roundConfig.badGuyCount - 1) * iconSpacing) / 2;
 
     // HUD background — larger and more visible
     const hudBg = this.add.rectangle(
       CONFIG.WIDTH / 2, hudY,
-      CONFIG.BAD_GUY_COUNT * iconSpacing + 50, 60,
+      this.roundConfig.badGuyCount * iconSpacing + 50, 60,
       0x000000, 0.5
     );
     hudBg.setStrokeStyle(2, 0xFFFFFF, 0.4);
     hudBg.setDepth(100);
 
-    for (let i = 0; i < CONFIG.BAD_GUY_COUNT; i++) {
+    for (let i = 0; i < this.roundConfig.badGuyCount; i++) {
       const ix = startX + i * iconSpacing;
       const icon = this.add.graphics();
       icon.fillStyle(CONFIG.COLORS.HUD_EMPTY);
