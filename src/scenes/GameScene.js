@@ -205,45 +205,36 @@ class GameScene extends Phaser.Scene {
   // --- CAR ---
 
   createCar(x, y) {
-    // Create a container with graphics for the car
-    const g = this.add.graphics();
+    // Only generate texture once (survives scene restart)
+    if (!this.textures.exists('car')) {
+      const g = this.add.graphics();
+      // Car body
+      g.fillStyle(CONFIG.COLORS.CAR_BODY);
+      g.fillRect(0, 4, 50, 24);
+      // Windshield
+      g.fillStyle(CONFIG.COLORS.CAR_WINDOW);
+      g.fillRect(37, 8, 10, 16);
+      // Rear window
+      g.fillStyle(CONFIG.COLORS.CAR_WINDOW);
+      g.fillRect(3, 10, 8, 12);
+      // Wheels
+      g.fillStyle(0x333333);
+      g.fillRect(7, 0, 12, 5);
+      g.fillRect(7, 27, 12, 5);
+      g.fillRect(33, 0, 12, 5);
+      g.fillRect(33, 27, 12, 5);
+      // Siren
+      g.fillStyle(CONFIG.COLORS.SIREN_RED);
+      g.fillRect(21, 2, 6, 5);
+      g.fillStyle(CONFIG.COLORS.SIREN_BLUE);
+      g.fillRect(27, 2, 6, 5);
+      g.generateTexture('car', 50, 32);
+      g.destroy();
+    }
 
-    // Car body
-    g.fillStyle(CONFIG.COLORS.CAR_BODY);
-    g.fillRect(-25, -12, 50, 24);
-
-    // Windshield
-    g.fillStyle(CONFIG.COLORS.CAR_WINDOW);
-    g.fillRect(12, -8, 10, 16);
-
-    // Rear window
-    g.fillStyle(CONFIG.COLORS.CAR_WINDOW);
-    g.fillRect(-22, -6, 8, 12);
-
-    // Wheels
-    g.fillStyle(0x333333);
-    g.fillRect(-18, -16, 12, 5);
-    g.fillRect(-18, 11, 12, 5);
-    g.fillRect(8, -16, 12, 5);
-    g.fillRect(8, 11, 12, 5);
-
-    // Siren bar
-    this.sirenLeft = this.add.rectangle(-4, -14, 6, 5, CONFIG.COLORS.SIREN_RED);
-    this.sirenRight = this.add.rectangle(4, -14, 6, 5, CONFIG.COLORS.SIREN_BLUE);
-
-    // Generate texture from graphics
-    g.generateTexture('car', 50, 32);
-    g.destroy();
-
-    // Create the actual sprite
     const car = this.physics.add.sprite(x, y, 'car');
     car.setCollideWorldBounds(true);
     car.body.setSize(50, 32);
-
-    // Move siren lights to track car (we'll use separate tracking)
-    this.sirenLeft.setVisible(false);
-    this.sirenRight.setVisible(false);
-
     return car;
   }
 
@@ -287,40 +278,36 @@ class GameScene extends Phaser.Scene {
   }
 
   createBadGuy(x, y) {
-    const g = this.add.graphics();
-
-    // Body (blocky Lego style)
-    g.fillStyle(CONFIG.COLORS.BAD_GUY_BODY);
-    g.fillRect(-10, -4, 20, 18);
-
-    // Head
-    g.fillStyle(CONFIG.COLORS.BAD_GUY_HEAD);
-    g.fillRect(-7, -14, 14, 12);
-
-    // Eyes (shifty!)
-    g.fillStyle(0x000000);
-    g.fillRect(-4, -10, 3, 3);
-    g.fillRect(2, -10, 3, 3);
-
-    // Mask (it's a bad guy!)
-    g.fillStyle(0x333333);
-    g.fillRect(-7, -8, 14, 3);
-
-    // Arms
-    g.fillStyle(CONFIG.COLORS.BAD_GUY_BODY);
-    g.fillRect(-14, -2, 5, 12);
-    g.fillRect(10, -2, 5, 12);
-
-    // Legs
-    g.fillStyle(0x333333);
-    g.fillRect(-8, 14, 7, 8);
-    g.fillRect(2, 14, 7, 8);
-
-    g.generateTexture('badguy', 28, 24);
-    g.destroy();
+    // Only generate texture once
+    if (!this.textures.exists('badguy')) {
+      const g = this.add.graphics();
+      // Body (blocky Lego style)
+      g.fillStyle(CONFIG.COLORS.BAD_GUY_BODY);
+      g.fillRect(4, 10, 20, 18);
+      // Head
+      g.fillStyle(CONFIG.COLORS.BAD_GUY_HEAD);
+      g.fillRect(7, 0, 14, 12);
+      // Eyes (shifty!)
+      g.fillStyle(0x000000);
+      g.fillRect(10, 4, 3, 3);
+      g.fillRect(16, 4, 3, 3);
+      // Mask (it's a bad guy!)
+      g.fillStyle(0x333333);
+      g.fillRect(7, 6, 14, 3);
+      // Arms
+      g.fillStyle(CONFIG.COLORS.BAD_GUY_BODY);
+      g.fillRect(0, 12, 5, 12);
+      g.fillRect(24, 12, 5, 12);
+      // Legs
+      g.fillStyle(0x333333);
+      g.fillRect(6, 28, 7, 8);
+      g.fillRect(16, 28, 7, 8);
+      g.generateTexture('badguy', 29, 36);
+      g.destroy();
+    }
 
     const badGuy = this.physics.add.sprite(x, y, 'badguy');
-    badGuy.body.setSize(28, 24);
+    badGuy.body.setSize(29, 36);
     badGuy.setCollideWorldBounds(true);
     return badGuy;
   }
@@ -406,49 +393,52 @@ class GameScene extends Phaser.Scene {
   // --- HUD ---
 
   drawHUD() {
-    const startX = CONFIG.WIDTH / 2 - ((CONFIG.BAD_GUY_COUNT - 1) * CONFIG.HUD_ICON_SPACING) / 2;
+    const hudY = 35;
+    const iconSpacing = 55;
+    const startX = CONFIG.WIDTH / 2 - ((CONFIG.BAD_GUY_COUNT - 1) * iconSpacing) / 2;
 
-    // HUD background
+    // HUD background — larger and more visible
     const hudBg = this.add.rectangle(
-      CONFIG.WIDTH / 2, CONFIG.HUD_Y,
-      CONFIG.BAD_GUY_COUNT * CONFIG.HUD_ICON_SPACING + 30, 44,
-      0x000000, 0.3
+      CONFIG.WIDTH / 2, hudY,
+      CONFIG.BAD_GUY_COUNT * iconSpacing + 50, 60,
+      0x000000, 0.5
     );
-    hudBg.setScrollFactor(0);
+    hudBg.setStrokeStyle(2, 0xFFFFFF, 0.4);
+    hudBg.setDepth(100);
 
     for (let i = 0; i < CONFIG.BAD_GUY_COUNT; i++) {
-      // Silhouette icon (person shape)
-      const ix = startX + i * CONFIG.HUD_ICON_SPACING;
+      const ix = startX + i * iconSpacing;
       const icon = this.add.graphics();
       icon.fillStyle(CONFIG.COLORS.HUD_EMPTY);
-      // Head
-      icon.fillCircle(ix, CONFIG.HUD_Y - 8, 6);
+      // Head (bigger)
+      icon.fillCircle(ix, hudY - 10, 8);
       // Body
-      icon.fillRect(ix - 6, CONFIG.HUD_Y - 2, 12, 14);
-      icon.setScrollFactor(0);
-      this.hudIcons.push(icon);
+      icon.fillRect(ix - 8, hudY - 2, 16, 18);
+      icon.setDepth(101);
+      this.hudIcons.push({ graphics: icon, x: ix, y: hudY });
     }
+    this.hudStartX = startX;
+    this.hudIconSpacing = iconSpacing;
+    this.hudIconY = hudY;
   }
 
   updateHUD() {
     if (this.jailedCount <= 0 || this.jailedCount > this.hudIcons.length) return;
 
     const idx = this.jailedCount - 1;
-    const icon = this.hudIcons[idx];
-    const startX = CONFIG.WIDTH / 2 - ((CONFIG.BAD_GUY_COUNT - 1) * CONFIG.HUD_ICON_SPACING) / 2;
-    const ix = startX + idx * CONFIG.HUD_ICON_SPACING;
+    const { graphics: icon, x: ix, y: hudY } = this.hudIcons[idx];
 
-    // Redraw as filled
+    // Redraw as filled (orange)
     icon.clear();
     icon.fillStyle(CONFIG.COLORS.HUD_FILLED);
-    icon.fillCircle(ix, CONFIG.HUD_Y - 8, 6);
-    icon.fillRect(ix - 6, CONFIG.HUD_Y - 2, 12, 14);
+    icon.fillCircle(ix, hudY - 10, 8);
+    icon.fillRect(ix - 8, hudY - 2, 16, 18);
 
-    // Checkmark
-    icon.fillStyle(0xFFFFFF);
-    icon.fillCircle(ix + 5, CONFIG.HUD_Y + 8, 4);
+    // Checkmark circle
+    icon.fillStyle(0x4CAF50);
+    icon.fillCircle(ix + 8, hudY + 12, 6);
     icon.lineStyle(2, 0xFFFFFF);
-    icon.lineBetween(ix + 3, CONFIG.HUD_Y + 8, ix + 5, CONFIG.HUD_Y + 10);
-    icon.lineBetween(ix + 5, CONFIG.HUD_Y + 10, ix + 8, CONFIG.HUD_Y + 5);
+    icon.lineBetween(ix + 5, hudY + 12, ix + 8, hudY + 15);
+    icon.lineBetween(ix + 8, hudY + 15, ix + 12, hudY + 9);
   }
 }
