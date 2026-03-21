@@ -848,9 +848,21 @@ class GameScene extends Phaser.Scene {
 
     // Check win
     if (this.jailedCount >= this.roundConfig.badGuyCount) {
+      this.roundComplete = true;
       SoundManager.stopSiren();
+      // Clean up power-ups and obstacle effects
+      this.isBoosted = false;
+      this.isSpinning = false;
+      this.isSlowed = false;
+      if (this.boostIndicator) { this.boostIndicator.destroy(); this.boostIndicator = null; }
+      if (this.flatIndicator) { this.flatIndicator.destroy(); this.flatIndicator = null; }
+      this.powerUps.clear(true, true);
       this.time.delayedCall(600, () => {
-        this.scene.start('CelebrationScene');
+        if (this.currentRound >= 5) {
+          this.scene.start('MegaCelebrationScene');
+        } else {
+          this.scene.start('CelebrationScene', { round: this.currentRound });
+        }
       });
     }
   }
@@ -1068,6 +1080,20 @@ class GameScene extends Phaser.Scene {
     );
     hudBg.setStrokeStyle(2, 0xFFFFFF, 0.4);
     hudBg.setDepth(100);
+
+    // Round info — top left
+    this.add.text(15, 15, 'ROUND ' + this.currentRound, {
+      fontFamily: 'Arial Black, Arial, sans-serif',
+      fontSize: '18px', fontStyle: 'bold',
+      color: '#FFFFFF', stroke: '#000000', strokeThickness: 3,
+    }).setDepth(101);
+
+    // Vehicle name — top right (shifted left for pause button)
+    this.add.text(CONFIG.WIDTH - 80, 15, this.roundConfig.vehicleName, {
+      fontFamily: 'Arial Black, Arial, sans-serif',
+      fontSize: '14px', fontStyle: 'bold',
+      color: '#FFD600', stroke: '#000000', strokeThickness: 2,
+    }).setOrigin(1, 0).setDepth(101);
 
     for (let i = 0; i < this.roundConfig.badGuyCount; i++) {
       const ix = startX + i * iconSpacing;
