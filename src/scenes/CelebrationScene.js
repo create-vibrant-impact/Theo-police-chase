@@ -64,13 +64,14 @@ class CelebrationScene extends Phaser.Scene {
       strokeThickness: 8,
     }).setOrigin(0.5).setScale(0);
 
-    // Slam-in animation
+    // Slam-in animation + fanfare
     this.tweens.add({
       targets: gotEm,
       scale: 1,
       duration: 500,
       ease: 'Back.easeOut',
     });
+    SoundManager.playFanfare();
 
     // Pulsing glow
     this.tweens.add({
@@ -123,27 +124,33 @@ class CelebrationScene extends Phaser.Scene {
     });
 
     // Button interaction — use text with padding for reliable click
+    let started = false;
+    const restart = () => {
+      if (started) return;
+      started = true;
+      SoundManager.playTap();
+      this.tweens.add({
+        targets: [btn, btnText],
+        scaleX: 0.9,
+        scaleY: 0.9,
+        duration: 100,
+        yoyo: true,
+        onComplete: () => {
+          this.scene.start('GameScene');
+        },
+      });
+    };
+
     btnText.setInteractive({ useHandCursor: true })
       .setPadding(40, 20)
-      .on('pointerdown', () => {
-        this.tweens.add({
-          targets: [btn, btnText],
-          scaleX: 0.9,
-          scaleY: 0.9,
-          duration: 100,
-          yoyo: true,
-          onComplete: () => {
-            this.scene.start('GameScene');
-          },
-        });
-      });
+      .on('pointerdown', restart);
 
     // Fallback — scene-level click near button area
     this.input.on('pointerdown', (pointer) => {
       const dy = Math.abs(pointer.y - btnY);
       const dx = Math.abs(pointer.x - cx);
       if (dx < btnW / 2 + 20 && dy < btnH / 2 + 20) {
-        this.scene.start('GameScene');
+        restart();
       }
     });
 

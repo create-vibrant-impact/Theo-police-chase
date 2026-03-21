@@ -35,6 +35,7 @@ class GameScene extends Phaser.Scene {
     // --- TOUCH INPUT ---
     this.input.on('pointerdown', (pointer) => {
       this.targetPos = { x: pointer.x, y: pointer.y };
+      SoundManager.startSiren();
     });
     this.input.on('pointermove', (pointer) => {
       if (pointer.isDown) {
@@ -45,6 +46,7 @@ class GameScene extends Phaser.Scene {
       // Option A: car stops when finger lifts
       this.targetPos = null;
       this.car.body.setVelocity(0, 0);
+      SoundManager.stopSiren();
     });
 
     // --- COLLISIONS ---
@@ -344,8 +346,9 @@ class GameScene extends Phaser.Scene {
       ease: 'Back.easeOut',
     });
 
-    // Flash effect
+    // Flash effect + catch sound
     this.cameras.main.flash(200, 255, 255, 255, false, null, this);
+    SoundManager.playCatch();
   }
 
   deliverToJail(car, jail) {
@@ -367,13 +370,14 @@ class GameScene extends Phaser.Scene {
       },
     });
 
-    // Jail door animation
+    // Jail door animation + sound
     this.tweens.add({
       targets: this.jailDoor,
       scaleX: 0.1,
       duration: 150,
       yoyo: true,
     });
+    SoundManager.playJail();
 
     // Update HUD
     this.jailedCount++;
@@ -384,6 +388,7 @@ class GameScene extends Phaser.Scene {
 
     // Check win
     if (this.jailedCount >= CONFIG.BAD_GUY_COUNT) {
+      SoundManager.stopSiren();
       this.time.delayedCall(600, () => {
         this.scene.start('CelebrationScene');
       });
