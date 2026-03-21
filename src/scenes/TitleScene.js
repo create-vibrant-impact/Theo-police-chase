@@ -77,13 +77,12 @@ class TitleScene extends Phaser.Scene {
       strokeThickness: 4,
     }).setOrigin(0.5);
 
-    // Make button interactive
-    const hitArea = this.add.rectangle(cx, btnY, btnW, btnH, 0x000000, 0)
-      .setInteractive()
+    // Make button interactive — use the text element with padding for reliable hit detection
+    playText.setInteractive({ useHandCursor: true })
+      .setPadding(40, 20)
       .on('pointerdown', () => {
-        // Pulse animation then start
         this.tweens.add({
-          targets: [btn, playText, hitArea],
+          targets: [btn, playText],
           scaleX: 0.9,
           scaleY: 0.9,
           duration: 100,
@@ -93,6 +92,15 @@ class TitleScene extends Phaser.Scene {
           },
         });
       });
+
+    // Also make the whole scene clickable as fallback for young kids
+    this.input.on('pointerdown', (pointer) => {
+      const dy = Math.abs(pointer.y - btnY);
+      const dx = Math.abs(pointer.x - cx);
+      if (dx < btnW / 2 + 20 && dy < btnH / 2 + 20) {
+        this.scene.start('GameScene');
+      }
+    });
 
     // Gentle float animation on title
     this.tweens.add({
