@@ -562,6 +562,26 @@ class GameScene extends Phaser.Scene {
     this.hudStartX = startX;
     this.hudIconSpacing = iconSpacing;
     this.hudIconY = hudY;
+
+    // Pause button — top right (drawn as two white bars, Lego style)
+    const pauseG = this.add.graphics();
+    pauseG.fillStyle(0x000000, 0.5);
+    pauseG.fillRoundedRect(CONFIG.WIDTH - 62, 12, 46, 46, 8);
+    pauseG.fillStyle(0xFFFFFF);
+    pauseG.fillRect(CONFIG.WIDTH - 50, 22, 8, 26);
+    pauseG.fillRect(CONFIG.WIDTH - 36, 22, 8, 26);
+    pauseG.setDepth(102);
+
+    const pauseHit = this.add.rectangle(CONFIG.WIDTH - 39, 35, 60, 60, 0x000000, 0)
+      .setDepth(103)
+      .setInteractive({ useHandCursor: true });
+
+    pauseHit.on('pointerdown', () => {
+      SoundManager.playPause();
+      SoundManager.stopSiren();
+      this.scene.pause();
+      this.scene.launch('PauseScene');
+    });
   }
 
   updateHUD() {
