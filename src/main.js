@@ -14,7 +14,7 @@ const game = new Phaser.Game({
       debug: false,
     },
   },
-  scene: [TitleScene, GameScene, CelebrationScene, PauseScene],
+  scene: [TitleScene, GameScene, CelebrationScene, VehicleRevealScene, PauseScene],
   input: {
     activePointers: 1,
   },
