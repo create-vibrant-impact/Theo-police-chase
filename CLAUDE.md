@@ -64,6 +64,7 @@ docs/
 - **Oil slick spin must be a one-shot effect** — Initial implementation used a tween that could re-trigger or loop indefinitely if the player stayed on the oil slick, causing an infinite spin. Fix: use a `spinning` flag on the vehicle to prevent re-entry, and clear it with a timed callback after the spin completes.
 - **Round state must fully reset after completing all 5 rounds** — After beating round 5 and returning to play again, the round counter was not resetting to 1. The "CATCH MORE" / "PLAY AGAIN" flow from MegaCelebrationScene must explicitly pass `{ round: 1 }` to GameScene to restart from the beginning.
 - **Flee must not be overridden by wander** — When a bad guy is fleeing (car is nearby), `startWander()` must skip setting new velocity and just reschedule. The `badGuy.fleeing` flag gates this. Without it, wander timers fire during flee and reset the bad guy's escape velocity, making flee feel broken.
+- **Fleeing bad guys escape off screen without boundary clamping** — Flee logic calculates velocity directly away from the player, which can send bad guys straight off the edge of the play area. Fix is two layers: (1) in `_updateBadGuyFlee()`, reverse velocity components when the bad guy is near an edge (50px margin) so they flee parallel to the boundary instead of through it; (2) `_updateBadGuyBounds()` runs every frame as a safety net, forcing velocity away from any edge within 30px. Both layers are needed — the flee clamp alone isn't sufficient because wander can also push bad guys to edges between flee triggers.
 
 ## Game Flow
 
